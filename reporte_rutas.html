@@ -529,11 +529,13 @@ function buildTableHTML(isPercent,regions,expanded,clean){
       uniqueEstados.forEach((e,ei)=>{
         const v=pData.estados[e]?pData.estados[e].size:0;
         const display=v>0?(isPercent?((v/pTotal)*100).toFixed(1)+'%':v):'';
-        // Gradient only on Terminado column in % table, for patente rows, no conflict override
-        if(isPercent&&ei===termIdx&&v>0&&!isConf){
+        // Gradient on Terminado column in % table, for patente rows, no conflict override
+        // Also applies when v=0 (0% → red gradient) so the cell always shows color + "0%"
+        if(isPercent&&ei===termIdx&&pTotal>0&&!isConf){
           const pctVal=(v/pTotal)*100;
           const {bg,txt}=termGradient(pctVal);
-          html+=`<td style="background:${bg}!important;color:${txt}!important;font-weight:700">${display}</td>`;
+          const termDisplay=v>0?display:'0%';
+          html+=`<td style="background:${bg}!important;color:${txt}!important;font-weight:700">${termDisplay}</td>`;
         } else {
           html+=`<td style="background:${rowBg}!important;color:#333!important">${display}</td>`;
         }
