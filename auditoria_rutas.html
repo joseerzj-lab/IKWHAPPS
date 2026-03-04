@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría de Rutas — IKEA Tools</title>
+<script src="xlsx.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --surface3:#22272e;
+  --border:#30363d; --border2:#3d444d;
+  --blue:#0051BA; --blue-dark:#003A8C; --blue-mid:#1a6dd4;
+  --yellow:#FFDA1A; --yellow-dk:#e6c400;
+  --green:#3fb950; --red:#f85149; --orange:#f0883e; --purple:#a371f7; --teal:#00c48c;
+  --text:#e6edf3; --text-muted:#8b949e; --text-dim:#656d76;
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --r:8px; --rs:6px;
+}
+body { font-family:var(--sans); background:var(--bg); color:var(--text); height:100vh; overflow:hidden; font-size:13px; }
+::-webkit-scrollbar{width:5px;height:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.ik-header{background:linear-gradient(135deg,var(--blue-dark),var(--blue) 55%,var(--blue-mid));padding:0 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--yellow);height:52px;flex-shrink:0;position:relative;z-index:10;}
+.ik-header-left{display:flex;align-items:center;gap:12px;}
+.ik-header-right{display:flex;align-items:center;gap:7px;}
+.ik-header h1{font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--yellow);text-transform:uppercase;}
+.ik-header-sub{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.5px;}
+.ik-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:rgba(255,255,255,.55);text-decoration:none;padding:4px 9px;border-radius:var(--rs);border:1px solid rgba(255,255,255,.15);transition:all .15s;}
+.ik-back:hover{color:var(--yellow);border-color:rgba(255,218,26,.4);background:rgba(255,218,26,.07);}
+.ik-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px;gap:1px;flex-shrink:0;}
+.ik-tab{padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.ik-tab:hover{color:var(--text);}
+.ik-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+.ik-tbadge{background:var(--blue);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:18px;text-align:center;font-family:var(--mono);}
+.ik-main{height:calc(100vh - 52px - 37px);display:flex;flex-direction:column;}
+.ik-panel{display:none;flex:1;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
+.ik-panel.active{display:flex;}
+button{font-family:var(--sans);font-weight:600;font-size:12px;border:none;border-radius:var(--rs);cursor:pointer;padding:6px 12px;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+button:disabled{opacity:.35;cursor:not-allowed;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover:not(:disabled){background:var(--blue-mid);transform:translateY(-1px);}
+.btn-yellow{background:var(--yellow);color:#111;font-weight:700;}
+.btn-yellow:hover:not(:disabled){background:var(--yellow-dk);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-ghost:hover:not(:disabled){background:var(--surface2);color:var(--text);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover:not(:disabled){background:#b22c2a;}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.btn-xs{padding:2px 6px;font-size:10px;}
+.ik-upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .18s;text-align:center;background:var(--bg);}
+.ik-upload-zone:hover,.ik-upload-zone.drag{border-color:var(--blue);background:rgba(0,81,186,.04);}
+.ik-upload-icon{font-size:32px;opacity:.6;}
+.ik-upload-label{font-size:13px;font-weight:600;color:var(--text-muted);}
+.ik-upload-sub{font-size:11px;color:var(--text-dim);font-family:var(--mono);}
+.ik-stats{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center;}
+.ik-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:80px;}
+.ik-stat-val{font-size:20px;font-weight:800;font-family:var(--mono);color:var(--text);line-height:1;}
+.ik-stat-lbl{font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.btn-anomaly{background:linear-gradient(135deg,#2d1b00,#5a3200);color:var(--orange);border:1px solid rgba(240,136,62,.35);font-size:11px;padding:7px 14px;border-radius:var(--rs);transition:all .15s;white-space:nowrap;}
+.btn-anomaly:hover:not(:disabled){background:linear-gradient(135deg,#3d2500,#7a4500);border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(240,136,62,.25);}
+.vehicles-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.veh-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
+.veh-block:hover{border-color:var(--border2);}
+.veh-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;transition:background .12s;gap:10px;user-select:none;}
+.veh-header:hover{background:var(--surface2);}
+.veh-left{display:flex;align-items:center;gap:10px;}
+.veh-name{font-size:13px;font-weight:700;color:var(--text);}
+.veh-pills{display:flex;align-items:center;gap:6px;}
+.pill{font-size:10px;font-weight:700;font-family:var(--mono);border-radius:20px;padding:2px 8px;}
+.pill-blue{background:rgba(0,81,186,.18);color:#7bb8ff;}
+.pill-dim{background:var(--surface3);color:var(--text-dim);}
+.pill-orange{background:rgba(240,136,62,.15);color:var(--orange);}
+.pill-red{background:rgba(248,81,73,.15);color:#ff7b72;}
+.veh-chev{font-size:10px;color:var(--text-dim);transition:transform .2s;flex-shrink:0;}
+.veh-block.open .veh-chev{transform:rotate(180deg);}
+.veh-body{display:none;border-top:1px solid var(--border);}
+.veh-block.open .veh-body{display:block;}
+.comunas-table{width:100%;border-collapse:collapse;}
+.comunas-table thead th{background:var(--surface3);padding:7px 16px;font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--border);}
+.comunas-table tbody tr{border-bottom:1px solid var(--border);}
+.comunas-table tbody tr:last-child{border-bottom:none;}
+.comunas-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+.ct-comunanm{padding:8px 16px;font-size:12px;font-weight:600;color:var(--text);}
+.ct-cnt{padding:8px 16px;text-align:right;font-family:var(--mono);font-size:12px;font-weight:700;}
+.ct-cnt-btn{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:rgba(0,81,186,.12);border:1px solid rgba(0,81,186,.2);cursor:pointer;transition:all .15s;color:#7bb8ff;font-weight:700;font-family:var(--mono);font-size:12px;}
+.ct-cnt-btn:hover{background:rgba(0,81,186,.28);border-color:var(--blue);transform:scale(1.05);}
+.ct-cnt-btn.one{background:rgba(240,136,62,.12);border-color:rgba(240,136,62,.25);color:var(--orange);}
+.ct-cnt-btn.one:hover{background:rgba(240,136,62,.25);}
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;animation:fadeIn .15s ease;}
+.modal-overlay.open{display:flex;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:min(720px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.7);animation:slideUp .18s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--blue-dark),var(--blue) 60%,var(--blue-mid));flex-shrink:0;}
+.modal-title{display:flex;flex-direction:column;gap:3px;}
+.modal-title-main{font-size:14px;font-weight:700;color:var(--yellow);letter-spacing:.5px;}
+.modal-title-sub{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--mono);}
+.modal-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:var(--rs);padding:4px 9px;font-size:13px;cursor:pointer;transition:all .12s;}
+.modal-close:hover{background:rgba(255,255,255,.2);color:#fff;}
+.modal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.modal-toolbar-left{display:flex;align-items:center;gap:6px;}
+.modal-toolbar-right{display:flex;align-items:center;gap:6px;}
+.modal-count{font-size:10px;color:var(--text-dim);font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:3px 8px;}
+.modal-count span{color:var(--yellow);font-weight:700;}
+.modal-filters-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 14px;border-bottom:1px solid var(--border);font-size:10px;min-height:30px;flex-shrink:0;}
+.no-filters-lbl{color:var(--text-dim);font-style:italic;}
+.fchip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,81,186,.2);border:1px solid rgba(0,81,186,.4);border-radius:20px;padding:2px 8px;font-size:10px;cursor:pointer;color:#7bb8ff;transition:all .12s;}
+.fchip:hover{background:rgba(248,81,73,.2);border-color:var(--red);color:#ff7b72;}
+.fchip-col{font-weight:700;}
+.modal-table-wrap{flex:1;overflow:auto;}
+.modal-table{width:100%;border-collapse:collapse;font-size:12px;}
+.modal-table thead th{background:var(--surface3);border:1px solid var(--border);padding:0;position:sticky;top:0;z-index:5;white-space:nowrap;}
+.th-inner{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:7px 10px;}
+.th-inner span{font-weight:700;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);}
+.modal-table thead th:first-child .th-inner span{color:var(--yellow);}
+.modal-table tbody td{border:1px solid var(--border);padding:7px 10px;vertical-align:middle;color:var(--text);font-family:var(--mono);font-size:11px;}
+.modal-table tbody td:first-child{font-weight:700;color:#7bb8ff;white-space:nowrap;}
+.modal-table tbody td:nth-child(2){max-width:320px;word-break:break-word;line-height:1.5;}
+.modal-table tbody tr:hover td{background:rgba(255,255,255,.025);}
+.modal-table tbody td:last-child{text-align:center;white-space:nowrap;}
+.modal-obs-cell{color:var(--orange);font-size:10px;font-weight:600;outline:none;min-width:120px;display:block;border-radius:3px;padding:2px 4px;transition:background .12s;}
+.modal-obs-cell:focus{background:rgba(240,136,62,.1);outline:1px solid rgba(240,136,62,.4);}
+.iso-copy-btn{background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;transition:all .12s;}
+.iso-copy-btn:hover{color:#7bb8ff;background:rgba(0,81,186,.15);}
+/* Anomaly modal */
+.anomaly-modal-box{background:var(--surface);border:1px solid rgba(248,81,73,.3);border-radius:12px;width:min(780px,95vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.8);animation:slideUp .18s ease;}
+.anomaly-modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(248,81,73,.2);background:linear-gradient(135deg,#1a0505,#2d0d0d 60%,#1a0a00);flex-shrink:0;}
+.anomaly-modal-title-main{font-size:14px;font-weight:700;color:#ff7b72;letter-spacing:.5px;}
+.anomaly-modal-title-sub{font-size:10px;color:rgba(255,120,100,.5);font-family:var(--mono);}
+.anomaly-veh-section{border-bottom:1px solid var(--border);padding:14px 16px;}
+.anomaly-veh-section:last-child{border-bottom:none;}
+.anomaly-veh-name{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.anomaly-item{display:flex;align-items:flex-start;gap:12px;background:rgba(248,81,73,.05);border:1px solid rgba(248,81,73,.15);border-radius:var(--rs);padding:10px 14px;margin-bottom:7px;}
+.anomaly-item:last-child{margin-bottom:0;}
+.anomaly-item-icon{font-size:18px;flex-shrink:0;}
+.anomaly-item-body{flex:1;min-width:0;}
+.anomaly-item-comuna{font-size:13px;font-weight:700;color:#ff7b72;margin-bottom:3px;}
+.anomaly-item-reason{font-size:10px;color:var(--text-muted);line-height:1.5;font-family:var(--mono);}
+.anomaly-item-isos{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.anomaly-iso-chip{font-size:10px;font-family:var(--mono);font-weight:700;background:rgba(0,81,186,.15);border:1px solid rgba(0,81,186,.25);color:#7bb8ff;border-radius:20px;padding:2px 8px;cursor:pointer;transition:all .12s;border:none;}
+.anomaly-iso-chip:hover{background:rgba(0,81,186,.3);transform:scale(1.05);}
+.no-anomalies{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--green);}
+.no-anomalies-icon{font-size:36px;}
+/* CFP */
+.ik-cfp{position:fixed;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:1000;width:240px;display:none;flex-direction:column;overflow:hidden;}
+.ik-cfp.open{display:flex;}
+.cfp-head{padding:10px 12px 8px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+.cfp-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+.cfp-sort-row{display:flex;gap:4px;}
+.cfp-search{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;width:100%;outline:none;}
+.cfp-search:focus{border-color:var(--blue);}
+.cfp-actions{display:flex;gap:5px;}
+.cfp-list{max-height:200px;overflow-y:auto;padding:4px 0;}
+.cfp-item{display:flex;align-items:center;gap:8px;padding:5px 12px;cursor:pointer;font-size:11px;transition:background .08s;user-select:none;}
+.cfp-item:hover{background:var(--surface3);}
+.cfp-item input[type="checkbox"]{accent-color:var(--blue);flex-shrink:0;}
+.cfp-item label{cursor:pointer;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px;font-family:var(--mono);}
+.cfp-item.blank label{color:var(--text-dim);font-style:italic;}
+.cfp-footer{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:5px;}
+.th-filter-btn{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:3px;background:transparent;border:none;cursor:pointer;color:var(--text-dim);font-size:10px;flex-shrink:0;transition:all .1s;padding:0;font-family:var(--sans);}
+.th-filter-btn:hover{background:var(--border2);color:var(--text);}
+.th-filter-btn.active{background:rgba(0,81,186,.35);color:var(--yellow);}
+/* Revision */
+.rev-textarea{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 9px;resize:vertical;height:80px;flex:1;outline:none;transition:border-color .12s;}
+.rev-textarea:focus{border-color:var(--blue);}
+.ik-grid-wrap{flex:1;overflow:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);}
+.ik-grid-table{width:100%;border-collapse:collapse;font-size:12px;}
+.ik-grid-table thead th{background:var(--surface3);border:1px solid var(--border);padding:0;position:sticky;top:0;z-index:5;white-space:nowrap;}
+.ik-grid-table tbody td{border:1px solid var(--border);padding:6px 10px;font-family:var(--mono);font-size:11px;vertical-align:middle;}
+.ik-grid-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+.ik-cell{display:block;padding:5px 8px;font-family:var(--mono);font-size:11px;color:var(--text);outline:none;min-height:26px;}
+.ik-cell:focus{background:rgba(0,81,186,.12);outline:2px solid var(--blue);outline-offset:-2px;}
+.obs-cell{color:var(--orange)!important;}
+.ik-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:160px;color:var(--text-dim);gap:10px;font-size:12px;}
+.ik-empty-icon{font-size:28px;opacity:.5;}
+.ik-notif{display:none;position:fixed;top:62px;right:18px;z-index:9999;padding:9px 15px;border-radius:var(--rs);font-weight:600;font-size:12px;max-width:340px;animation:slideIn .18s ease;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.ik-notif-ok{background:rgba(63,185,80,.12);color:var(--green);border:1px solid var(--green);}
+.ik-notif-err{background:rgba(248,81,73,.15);color:#ff7b72;border:1px solid var(--red);}
+.copy-flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#0d1117;font-weight:700;font-size:12px;padding:8px 20px;border-radius:20px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .25s;box-shadow:0 4px 20px rgba(63,185,80,.4);}
+.copy-flash.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="ik-notif" id="notif"></div>
+<div class="copy-flash" id="copyFlash">Copiado</div>
+
+<!-- CFP POPUP -->
+<div class="ik-cfp" id="cfp">
+  <div class="cfp-head">
+    <div class="cfp-title" id="cfp-title">Filtrar</div>
+    <div class="cfp-sort-row">
+      <button class="btn-blue btn-sm" style="flex:1;font-size:10px" onclick="cfpSort('asc')">A - Z</button>
+      <button class="btn-blue btn-sm" style="flex:1;font-size:10px" onclick="cfpSort('desc')">Z - A</button>
+      <button class="btn-ghost btn-sm" style="flex:1;font-size:10px" onclick="cfpSort(null)">x Orden</button>
+    </div>
+    <input class="cfp-search" id="cfp-search" placeholder="Buscar..." oninput="cfpSearch(this.value)">
+    <div class="cfp-actions">
+      <button class="btn-blue btn-sm" style="flex:1" onclick="cfpSelAll(true)">Todas</button>
+      <button class="btn-ghost btn-sm" style="flex:1" onclick="cfpSelAll(false)">Ninguna</button>
+    </div>
+  </div>
+  <div class="cfp-list" id="cfp-list"></div>
+  <div class="cfp-footer">
+    <button class="btn-blue btn-sm" style="flex:1" onclick="cfpApply()">Aplicar</button>
+    <button class="btn-ghost btn-sm" style="flex:1" onclick="cfpClose()">Cancelar</button>
+  </div>
+</div>
+
+<!-- ISO DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="modalClickOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="modal-title-main" id="modalTitleMain">ISOs</div>
+        <div class="modal-title-sub" id="modalTitleSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">x Cerrar</button>
+    </div>
+    <div class="modal-toolbar">
+      <div class="modal-toolbar-left">
+        <div class="modal-count">Mostrando <span id="modalCount">0</span> de <span id="modalTotal">0</span></div>
+      </div>
+      <div class="modal-toolbar-right">
+        <button class="btn-ghost btn-sm" onclick="copiarISOsModal()">Copiar ISOs</button>
+        <button class="btn-yellow btn-sm" onclick="copiarTablaModal()">Copiar tabla</button>
+      </div>
+    </div>
+    <div class="modal-filters-bar" id="modalFiltersBar">
+      <span class="no-filters-lbl">Sin filtros activos</span>
+    </div>
+    <div class="modal-table-wrap">
+      <table class="modal-table">
+        <thead>
+          <tr>
+            <th><div class="th-inner"><span>ISO</span><button class="th-filter-btn" id="mfbtn-iso" onclick="openCfp('iso',this,'modal')">v</button></div></th>
+            <th><div class="th-inner"><span>Direccion</span><button class="th-filter-btn" id="mfbtn-dir" onclick="openCfp('dir',this,'modal')">v</button></div></th>
+            <th><div class="th-inner"><span>Observacion</span><button class="th-filter-btn" id="mfbtn-obs" onclick="openCfp('obs',this,'modal')">v</button></div></th>
+            <th><div class="th-inner" style="justify-content:center"><span>Copiar</span></div></th>
+          </tr>
+        </thead>
+        <tbody id="modalBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ANOMALY MODAL -->
+<div class="modal-overlay" id="anomalyOverlay" onclick="anomalyClickOutside(event)">
+  <div class="anomaly-modal-box">
+    <div class="anomaly-modal-header">
+      <div class="modal-title">
+        <div class="anomaly-modal-title-main">Comunas Anomalas Detectadas</div>
+        <div class="anomaly-modal-title-sub" id="anomalySubtitle">analizando distancias entre comunas por vehiculo</div>
+      </div>
+      <button class="modal-close" style="border-color:rgba(248,81,73,.3);color:#ff7b72;" onclick="closeAnomalyModal()">x Cerrar</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;" id="anomalyBody"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="ik-header">
+  <div class="ik-header-left">
+    <span style="font-size:20px">&#128269;</span>
+    <div>
+      <h1>Auditoria de Rutas</h1>
+      <div class="ik-header-sub">analisis de comunas · revision de direcciones</div>
+    </div>
+  </div>
+  <div class="ik-header-right">
+    <a href="index.html" class="ik-back">Inicio</a>
+    <label class="btn-blue btn-sm" style="cursor:pointer">
+      Cargar archivo
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
+    </label>
+    <button class="btn-red btn-sm" onclick="limpiarTodo()">Limpiar</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="ik-tabs">
+  <div class="ik-tab active" onclick="aTab('tab-mapa',this)">
+    Mapa de Rutas <span class="ik-tbadge" id="badge-isos">0</span>
+  </div>
+  <div class="ik-tab" onclick="aTab('tab-revision',this)">
+    Revision <span class="ik-tbadge" id="badge-rev">0</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="ik-main">
+  <div class="ik-panel active" id="tab-mapa">
+    <div class="ik-upload-zone" id="uploadZone"
+         onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="onDrop(event)">
+      <div class="ik-upload-icon">&#128196;</div>
+      <div class="ik-upload-label">Arrastra tu archivo o haz clic para cargar</div>
+      <div class="ik-upload-sub">Columnas requeridas: Titulo · Vehiculo · Direccion</div>
+    </div>
+    <div class="ik-stats" id="statsBar" style="display:none">
+      <div class="ik-stat"><div class="ik-stat-val" id="st-isos">0</div><div class="ik-stat-lbl">ISOs</div></div>
+      <div class="ik-stat"><div class="ik-stat-val" id="st-vehs">0</div><div class="ik-stat-lbl">Vehiculos</div></div>
+      <div class="ik-stat"><div class="ik-stat-val" id="st-comunas">0</div><div class="ik-stat-lbl">Comunas</div></div>
+      <div class="ik-stat"><div class="ik-stat-val" id="st-unicas" style="color:var(--orange)">0</div><div class="ik-stat-lbl">1 ISO / comuna</div></div>
+      <div style="margin-left:auto">
+        <button class="btn-anomaly" id="btnAnomaly" onclick="analizarAnomalias()" disabled>
+          &#128301; Detectar Comunas Anomalas
+        </button>
+      </div>
+    </div>
+    <div class="vehicles-scroll" id="vehiclesScroll"></div>
+  </div>
+
+  <div class="ik-panel" id="tab-revision">
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-shrink:0;flex-wrap:wrap;">
+      <textarea class="rev-textarea" id="revInput" placeholder="Pega ISOs aqui (una por linea, separadas por coma o espacio)..."></textarea>
+      <button class="btn-blue" onclick="procesarRevision()">Revisar ISOs</button>
+      <button class="btn-ghost" onclick="limpiarRevision()">Limpiar</button>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;display:none" id="revActions">
+      <button class="btn-blue btn-sm" onclick="copiarTablaRev()">Copiar tabla</button>
+      <button class="btn-ghost btn-sm" onclick="copiarISOsRev()">Copiar ISOs</button>
+      <span style="font-size:10px;color:var(--text-dim);font-family:var(--mono)" id="revCount"></span>
+    </div>
+    <div class="ik-grid-wrap" id="revGridWrap">
+      <div class="ik-empty"><div class="ik-empty-icon">&#128203;</div>Pega ISOs arriba para comenzar la revision</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+var rawData = [];
+var revData = [];
+var revFilters = {};
+var revSortCol = null, revSortDir = null;
+var modalData = [];
+var modalFilters = {};
+var modalSortCol = null, modalSortDir = null;
+var cfp_col = null, cfp_all = [], cfp_pending = new Set(), cfp_btn_el = null, cfp_ctx = 'rev';
+
+// Store for ISO groups keyed by a generated ID so we never embed JSON in HTML
+var isoGroupStore = {};
+
+function gid(id) { return document.getElementById(id); }
+
+// ── COORDS ──
+var COORDS_CL = {
+  'SANTIAGO':[-33.4569,-70.6483],'PROVIDENCIA':[-33.4329,-70.6093],'LAS CONDES':[-33.4093,-70.5674],
+  'VITACURA':[-33.3817,-70.5785],'NUNOA':[-33.4569,-70.5985],'NUNA':[-33.4569,-70.5985],
+  'LA FLORIDA':[-33.5232,-70.5888],'MAIPU':[-33.5116,-70.7576],'PUDAHUEL':[-33.4375,-70.8206],
+  'CERRILLOS':[-33.4897,-70.7186],'QUILICURA':[-33.3592,-70.7368],'HUECHURABA':[-33.3527,-70.6668],
+  'RECOLETA':[-33.4068,-70.6451],'INDEPENDENCIA':[-33.4209,-70.6568],'CONCHALI':[-33.3836,-70.6639],
+  'RENCA':[-33.4002,-70.7247],'CERRO NAVIA':[-33.4235,-70.7367],'LO PRADO':[-33.4365,-70.7198],
+  'ESTACION CENTRAL':[-33.4573,-70.6886],'QUINTA NORMAL':[-33.4386,-70.7018],'LO ESPEJO':[-33.5125,-70.6966],
+  'PEDRO AGUIRRE CERDA':[-33.4936,-70.6727],'SAN MIGUEL':[-33.4948,-70.6494],'LA CISTERNA':[-33.5278,-70.6603],
+  'SAN RAMON':[-33.5405,-70.6395],'LA PINTANA':[-33.5812,-70.6320],'EL BOSQUE':[-33.5673,-70.6687],
+  'LA GRANJA':[-33.5367,-70.6288],'SAN JOAQUIN':[-33.4972,-70.6316],'MACUL':[-33.4930,-70.5938],
+  'PENALOLEN':[-33.4839,-70.5459],'LA REINA':[-33.4529,-70.5422],'PUENTE ALTO':[-33.6100,-70.5757],
+  'LA CALERA':[-32.7866,-71.1988],'QUILLOTA':[-32.8800,-71.2480],'SAN ANTONIO':[-33.5920,-71.6248],
+  'RANCAGUA':[-34.1703,-70.7444],'TEMUCO':[-38.7359,-72.5904],'CONCEPCION':[-36.8270,-73.0497],
+  'VALPARAISO':[-33.0458,-71.6197],'VINA DEL MAR':[-33.0153,-71.5500],'ANTOFAGASTA':[-23.6509,-70.4000],
+  'LA SERENA':[-29.9027,-71.2520],'IQUIQUE':[-20.2208,-70.1431],'TALCA':[-35.4264,-71.6554],
+  'CHILLAN':[-36.6067,-72.1033],'OSORNO':[-40.5738,-73.1350],'PUERTO MONTT':[-41.4717,-72.9371],
+  'COPIAPO':[-27.3666,-70.3311],'ARICA':[-18.4783,-70.3126],'SAN BERNARDO':[-33.5923,-70.6998],
+  'BUIN':[-33.7321,-70.7461],'PAINE':[-33.8151,-70.7447],'TALAGANTE':[-33.6644,-70.9264],
+  'PENAFLOR':[-33.6160,-70.9069],'MELIPILLA':[-33.6893,-71.2133],'CALERA DE TANGO':[-33.6362,-70.7879],
+  'LO BARNECHEA':[-33.3543,-70.5172],'COLINA':[-33.2018,-70.6748],'LAMPA':[-33.2867,-70.8791],
+  'TIL TIL':[-33.0839,-70.9333],'TILTIL':[-33.0839,-70.9333]
+};
+
+function getCoords(nombre) {
+  var key = nombre.trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9 ]/g,'').trim();
+  if (COORDS_CL[key]) return COORDS_CL[key];
+  var keys = Object.keys(COORDS_CL);
+  for (var i = 0; i < keys.length; i++) {
+    if (key.indexOf(keys[i]) >= 0 || keys[i].indexOf(key) >= 0) return COORDS_CL[keys[i]];
+  }
+  return null;
+}
+
+function haversine(c1, c2) {
+  var R = 6371, lat1 = c1[0], lon1 = c1[1], lat2 = c2[0], lon2 = c2[1];
+  var dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── NOTIFICATIONS ──
+function notif(msg, type) {
+  type = type || 'ok';
+  var el = gid('notif');
+  el.className = 'ik-notif ik-notif-' + type;
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(el._t); el._t = setTimeout(function(){ el.style.display='none'; }, 2800);
+}
+function flashCopy(msg) {
+  msg = msg || 'Copiado';
+  var el = gid('copyFlash');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+
+// ── TABS ──
+function aTab(id, btn) {
+  document.querySelectorAll('.ik-panel').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.ik-tab').forEach(function(t){ t.classList.remove('active'); });
+  gid(id).classList.add('active'); btn.classList.add('active');
+}
+
+// ── FILE HANDLING ──
+function onDrop(e) {
+  e.preventDefault(); gid('uploadZone').classList.remove('drag');
+  var f = e.dataTransfer.files[0]; if (f) processFile(f);
+}
+function cargarArchivo(input) { var f = input.files[0]; if (f) processFile(f); input.value = ''; }
+
+function processFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var rows;
+      if (/\.xlsx?$/i.test(file.name)) {
+        if (typeof XLSX === 'undefined') { notif('xlsx_min.js no encontrado','err'); return; }
+        var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+      } else {
+        var text = e.target.result;
+        var lines = text.split(/\r?\n/).filter(Boolean);
+        var sep = (lines[0].match(/\t/g)||[]).length > (lines[0].match(/,/g)||[]).length ? '\t' : ',';
+        var headers = lines[0].split(sep).map(function(h){ return h.trim().replace(/^"|"$/g,''); });
+        rows = lines.slice(1).map(function(line){
+          var vals = line.split(sep).map(function(v){ return v.trim().replace(/^"|"$/g,''); });
+          var obj = {}; headers.forEach(function(h,i){ obj[h] = vals[i]||''; }); return obj;
+        });
+      }
+      if (!rows.length) { notif('Archivo vacio','err'); return; }
+      var keys = Object.keys(rows[0]);
+
+      // Normalize: remove accents, lowercase
+      function norm(s){ return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+      // Find column: try exact normalized match first, then partial
+      function findCol() {
+        var candidates = Array.prototype.slice.call(arguments);
+        // exact match
+        var exact = keys.find(function(k){ return candidates.some(function(c){ return norm(k) === norm(c); }); });
+        if (exact) return exact;
+        // partial match
+        return keys.find(function(k){ return candidates.some(function(c){ return norm(k).indexOf(norm(c)) >= 0; }); });
+      }
+
+      var cTit = findCol('Título','Titulo','titulo','title','iso');
+      var cVeh = findCol('Vehículo','Vehiculo','vehiculo','vehicle','veh');
+      var cDir = findCol('Dirección','Direccion','direccion','dir','address');
+
+      if (!cTit) { notif('No se encontro columna Titulo. Columnas: ' + keys.slice(0,6).join(' | '), 'err'); return; }
+      if (!cVeh) { notif('No se encontro columna Vehiculo. Columnas: ' + keys.slice(0,6).join(' | '), 'err'); return; }
+      if (!cDir) { notif('No se encontro columna Direccion. Columnas: ' + keys.slice(0,6).join(' | '), 'err'); return; }
+
+      rawData = rows
+        .filter(function(r){
+          var iso = (r[cTit]||'').trim().toUpperCase();
+          return iso && iso !== 'INICIO' && iso !== 'FIN';
+        })
+        .map(function(r){
+          var dir = (r[cDir]||'').trim();
+          var parts = dir.split(',').map(function(s){ return s.trim(); });
+          var n = parts.length;
+          // Last two parts: parts[n-2] = comuna, parts[n-1] = provincia/region
+          var comuna   = n >= 2 ? parts[n-2] : (parts[0] || 'Sin comuna');
+          var provincia = n >= 1 ? parts[n-1] : '';
+          return { iso:(r[cTit]||'').trim(), veh:(r[cVeh]||'').trim(), dir:dir, comuna:comuna, provincia:provincia };
+        });
+      renderMapa();
+      notif('OK: ' + rawData.length + ' ISOs cargadas');
+    } catch(err) { notif('Error al leer archivo: ' + err.message, 'err'); }
+  };
+  if (/\.xlsx?$/i.test(file.name)) reader.readAsArrayBuffer(file);
+  else reader.readAsText(file, 'UTF-8');
+}
+
+// ── RENDER MAPA ──
+function renderMapa() {
+  if (!rawData.length) return;
+  gid('uploadZone').style.display = 'none';
+  gid('statsBar').style.display = 'flex';
+  gid('btnAnomaly').disabled = false;
+  isoGroupStore = {};
+
+  var vehMap = {};
+  rawData.forEach(function(r){
+    var v = r.veh || 'Sin vehiculo';
+    var c = r.comuna || 'Sin comuna';
+    if (!vehMap[v]) vehMap[v] = {};
+    if (!vehMap[v][c]) vehMap[v][c] = [];
+    vehMap[v][c].push(r);
+  });
+
+  var totalComunas = new Set(rawData.map(function(r){ return r.comuna; })).size;
+  var soloUna = 0;
+  Object.values(vehMap).forEach(function(comunas){
+    Object.values(comunas).forEach(function(arr){ if(arr.length===1) soloUna++; });
+  });
+
+  gid('st-isos').textContent = rawData.length;
+  gid('st-vehs').textContent = Object.keys(vehMap).length;
+  gid('st-comunas').textContent = totalComunas;
+  gid('st-unicas').textContent = soloUna;
+  gid('badge-isos').textContent = rawData.length;
+
+  var vscroll = gid('vehiclesScroll');
+  vscroll.innerHTML = '';
+
+  Object.entries(vehMap).sort(function(a,b){ return a[0].localeCompare(b[0],'es'); }).forEach(function(entry){
+    var veh = entry[0], comunas = entry[1];
+    var totalIsos = 0;
+    Object.values(comunas).forEach(function(arr){ totalIsos += arr.length; });
+    var soloUnaCount = Object.values(comunas).filter(function(arr){ return arr.length===1; }).length;
+
+    var block = document.createElement('div');
+    block.className = 'veh-block open';
+
+    var header = document.createElement('div');
+    header.className = 'veh-header';
+    var pillsHtml = '<span class="pill pill-blue">' + totalIsos + ' ISOs</span> <span class="pill pill-dim">' + Object.keys(comunas).length + ' comunas</span>';
+    if (soloUnaCount) pillsHtml += ' <span class="pill pill-orange">! ' + soloUnaCount + ' solo 1</span>';
+    header.innerHTML = '<div class="veh-left"><span style="font-size:18px">&#128667;</span><div class="veh-name">' + escH(veh) + '</div><div class="veh-pills">' + pillsHtml + '</div></div><div class="veh-chev">v</div>';
+    header.addEventListener('click', function(){ block.classList.toggle('open'); });
+
+    var body = document.createElement('div');
+    body.className = 'veh-body';
+
+    var table = document.createElement('table');
+    table.className = 'comunas-table';
+    table.innerHTML = '<thead><tr><th style="width:40%">Comuna</th><th style="width:30%">Provincia / Region</th><th style="text-align:right">ISOs</th><th style="text-align:right;width:60px"></th></tr></thead>';
+
+    var tbody = document.createElement('tbody');
+    Object.entries(comunas).sort(function(a,b){ return b[1].length - a[1].length; }).forEach(function(ce){
+      var comuna = ce[0], isos = ce[1];
+      var isOne = isos.length === 1;
+
+      // Store ISO data safely, reference by key
+      var storeKey = 'g_' + Math.random().toString(36).substr(2, 12);
+      // collect unique provincia for this comuna group
+      var provSet = {};
+      isos.forEach(function(r){ if(r.provincia) provSet[r.provincia]=1; });
+      var provLabel = Object.keys(provSet).join(' / ') || '—';
+
+      isoGroupStore[storeKey] = {
+        veh: veh,
+        comuna: comuna,
+        isos: isos.map(function(r){ return {iso:r.iso, dir:r.dir, obs:'Verificar Direccion', _id: Math.random().toString(36).substr(2,9)}; })
+      };
+
+      var tr = document.createElement('tr');
+      var btnClass = 'ct-cnt-btn' + (isOne ? ' one' : '');
+      tr.innerHTML = '<td class="ct-comunanm">' + escH(comuna) + '</td>' +
+        '<td style="padding:8px 16px;font-size:11px;color:var(--text-dim);font-family:var(--mono)">' + escH(provLabel) + '</td>' +
+        '<td class="ct-cnt">' +
+          '<span class="' + btnClass + '" data-key="' + storeKey + '">' + isos.length + ' <span style="font-size:9px;opacity:.7">></span></span>' +
+        '</td>' +
+        '<td style="padding:6px 10px;text-align:center">' +
+          '<button class="btn-ghost btn-xs" data-key="' + storeKey + '">Ver</button>' +
+        '</td>';
+
+      // Attach click handlers after building DOM (no inline JS, no JSON in HTML)
+      tbody.appendChild(tr);
+      tr.querySelector('.ct-cnt-btn').addEventListener('click', function(){
+        openGroupModal(this.getAttribute('data-key'));
+      });
+      tr.querySelector('.btn-ghost').addEventListener('click', function(){
+        openGroupModal(this.getAttribute('data-key'));
+      });
+    });
+
+    table.appendChild(tbody);
+    body.appendChild(table);
+    block.appendChild(header);
+    block.appendChild(body);
+    vscroll.appendChild(block);
+  });
+}
+
+// ── OPEN GROUP MODAL ──
+function openGroupModal(storeKey) {
+  var group = isoGroupStore[storeKey];
+  if (!group) return;
+  abrirModalISOs(group.veh, group.comuna, group.isos);
+}
+
+// ── ISO DETAIL MODAL ──
+function abrirModalISOs(veh, comuna, isos) {
+  modalData = isos.map(function(r){
+    return { iso:r.iso, dir:r.dir, obs:r.obs||'Verificar Direccion', _id:r._id||Math.random().toString(36).substr(2,9) };
+  });
+  modalFilters = {}; modalSortCol = null; modalSortDir = null;
+  gid('modalTitleMain').textContent = veh + '  -  ' + comuna;
+  gid('modalTitleSub').textContent = isos.length + ' ISO' + (isos.length!==1?'s':'') + ' en esta comuna';
+  gid('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderModalTable();
+}
+
+function closeModal() {
+  gid('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  modalData = []; modalFilters = {};
+}
+function modalClickOutside(e) { if (e.target === gid('modalOverlay')) closeModal(); }
+
+function getFilteredModal() {
+  var data = modalData.filter(function(row){
+    return Object.keys(modalFilters).every(function(col){ return modalFilters[col].has(row[col]!=null?row[col]:''); });
+  });
+  if (modalSortCol && modalSortDir) {
+    data = data.slice().sort(function(a,b){
+      var va = (a[modalSortCol]||'').toLowerCase(), vb = (b[modalSortCol]||'').toLowerCase();
+      return modalSortDir==='asc' ? va.localeCompare(vb,'es') : vb.localeCompare(va,'es');
+    });
+  }
+  return data;
+}
+
+function renderModalTable() {
+  var filtered = getFilteredModal();
+  gid('modalCount').textContent = filtered.length;
+  gid('modalTotal').textContent = modalData.length;
+  ['iso','dir','obs'].forEach(function(col){
+    var btn = gid('mfbtn-' + col);
+    if (!btn) return;
+    var active = !!modalFilters[col];
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? 'v' + modalFilters[col].size : 'v';
+  });
+  updateModalFiltersBar();
+  var tbody = gid('modalBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-dim);font-size:12px;">Sin resultados para los filtros activos</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  filtered.forEach(function(r){
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + escH(r.iso) + '</td>' +
+      '<td>' + escH(r.dir) + '</td>' +
+      '<td><div class="modal-obs-cell" contenteditable="true" data-id="' + r._id + '">' + escH(r.obs) + '</div></td>' +
+      '<td style="text-align:center"><button class="iso-copy-btn" data-iso="' + escH(r.iso) + '" title="Copiar ISO">&#10066;</button></td>';
+    tr.querySelector('.modal-obs-cell').addEventListener('blur', function(){ saveModalCell(this); });
+    tr.querySelector('.modal-obs-cell').addEventListener('keydown', function(e){ if(e.key==='Escape') this.blur(); });
+    tr.querySelector('.iso-copy-btn').addEventListener('click', function(){ copiarTextoFlash(this.getAttribute('data-iso'), 'ISO copiada'); });
+    tbody.appendChild(tr);
+  });
+}
+
+function saveModalCell(el) {
+  var id = el.getAttribute('data-id');
+  var r = modalData.find(function(x){ return x._id===id; });
+  if (r) r.obs = el.innerText.trim();
+}
+
+function updateModalFiltersBar() {
+  var bar = gid('modalFiltersBar');
+  var entries = Object.keys(modalFilters);
+  if (!entries.length) { bar.innerHTML = '<span class="no-filters-lbl">Sin filtros activos</span>'; return; }
+  var h = '';
+  var labels = {iso:'ISO', dir:'Direccion', obs:'Observacion'};
+  entries.forEach(function(col){
+    var set = modalFilters[col];
+    var vals = Array.from(set).slice(0,3).map(function(v){ return v||'(Vacio)'; }).join(', ') + (set.size>3?' +' + (set.size-3):'');
+    h += '<span class="fchip" data-col="' + col + '"><span class="fchip-col">' + (labels[col]||col) + ':</span> ' + escH(vals) + ' x</span>';
+  });
+  h += '<button class="btn-ghost btn-sm" style="margin-left:auto;padding:2px 8px;font-size:10px" onclick="clearAllModalFilters()">x Todos</button>';
+  bar.innerHTML = h;
+  bar.querySelectorAll('.fchip').forEach(function(chip){
+    chip.addEventListener('click', function(){ clearModalFilter(this.getAttribute('data-col')); });
+  });
+}
+
+function clearModalFilter(col) { delete modalFilters[col]; renderModalTable(); }
+function clearAllModalFilters() { modalFilters = {}; renderModalTable(); }
+
+function copiarISOsModal() {
+  var f = getFilteredModal(); if(!f.length){notif('Sin datos','err');return;}
+  copiarTextoFlash(f.map(function(r){return r.iso;}).join('\n'), f.length + ' ISOs copiadas');
+}
+
+function copiarTablaModal() {
+  var filtered = getFilteredModal(); if(!filtered.length){notif('Sin datos','err');return;}
+  var hdS = 'border:1px solid #000;padding:7px 11px;font-weight:bold;background:#0051BA;color:#FFDA1A;font-family:Arial,sans-serif;font-size:12px;';
+  var tdS = 'border:1px solid #000;padding:6px 11px;font-family:Arial,sans-serif;font-size:11px;background:#fff;color:#000;';
+  var html = '<table style="border-collapse:collapse;"><tr><th style="'+hdS+'">ISO</th><th style="'+hdS+'">Direccion</th><th style="'+hdS+'">Observacion</th></tr>';
+  filtered.forEach(function(r){ html += '<tr><td style="'+tdS+'font-weight:700;">'+escH(r.iso)+'</td><td style="'+tdS+'">'+escH(r.dir)+'</td><td style="'+tdS+'color:#d97706;font-weight:600;">'+escH(r.obs)+'</td></tr>'; });
+  html += '</table>';
+  var tsv = 'ISO\tDireccion\tObservacion\n';
+  filtered.forEach(function(r){ tsv += r.iso + '\t' + r.dir + '\t' + r.obs + '\n'; });
+  tryCopyRich(html, tsv, 'Tabla copiada');
+}
+
+// ── ANOMALY DETECTION ──
+// Approach: for each vehicle, find the MAIN CLUSTER of comunas (the densely connected group)
+// using single-linkage clustering with a distance threshold.
+// Any comuna that cannot join the main cluster = anomaly.
+//
+// Adjacency threshold: two comunas are "neighbors" if they are within MAX_NEIGHBOR_KM of each other.
+// A comuna belongs to the main cluster if it is within MAX_CLUSTER_KM of at least one cluster member.
+// The main cluster = the largest connected component.
+
+var MAX_NEIGHBOR_KM = 10;   // comunas within 25km are considered adjacent/neighbor
+var MAX_CLUSTER_KM  = 10;   // max gap to still belong to the same cluster
+
+function buildClusters(nodes) {
+  // nodes = [{name, coords, isos}]
+  // Returns array of clusters (each cluster = array of node indices), sorted largest first
+  var n = nodes.length;
+  var visited = new Array(n).fill(false);
+  var clusters = [];
+
+  for (var i = 0; i < n; i++) {
+    if (visited[i]) continue;
+    // BFS
+    var cluster = [];
+    var queue = [i];
+    visited[i] = true;
+    while (queue.length) {
+      var cur = queue.shift();
+      cluster.push(cur);
+      for (var j = 0; j < n; j++) {
+        if (!visited[j]) {
+          var d = haversine(nodes[cur].coords, nodes[j].coords);
+          if (d <= MAX_CLUSTER_KM) {
+            visited[j] = true;
+            queue.push(j);
+          }
+        }
+      }
+    }
+    clusters.push(cluster);
+  }
+  // Sort: largest cluster first
+  clusters.sort(function(a,b){ return b.length - a.length; });
+  return clusters;
+}
+
+function analizarAnomalias() {
+  if (!rawData.length) { notif('Carga un archivo primero','err'); return; }
+
+  var vehMap = {};
+  rawData.forEach(function(r){
+    var v = r.veh || 'Sin vehiculo', c = r.comuna || 'Sin comuna';
+    if (!vehMap[v]) vehMap[v] = {};
+    if (!vehMap[v][c]) vehMap[v][c] = [];
+    vehMap[v][c].push(r);
+  });
+
+  var anomalies = [];   // {veh, comuna, isos, distToCluster, nearestInCluster, clusterComunas}
+  var skippedVehs = []; // vehicles with too few mapped comunas to analyze
+
+  Object.entries(vehMap).forEach(function(entry){
+    var veh = entry[0], comunas = entry[1];
+    var comunaList = Object.keys(comunas);
+    if (comunaList.length < 2) return;
+
+    // Map to coords — only comunas we know
+    var nodes = comunaList.map(function(c){
+      return { name:c, coords:getCoords(c), isos:comunas[c] };
+    }).filter(function(x){ return !!x.coords; });
+
+    var unknownComunas = comunaList.filter(function(c){ return !getCoords(c); });
+
+    if (nodes.length < 2) {
+      if (unknownComunas.length) skippedVehs.push({veh:veh, unknown:unknownComunas});
+      return;
+    }
+
+    // Build clusters using connectivity
+    var clusters = buildClusters(nodes);
+    var mainCluster = clusters[0]; // largest group = "real" route zone
+    var outlierClusters = clusters.slice(1); // everything else = potential anomalies
+
+    // Centroid of main cluster
+    var clat = 0, clon = 0;
+    mainCluster.forEach(function(i){ clat += nodes[i].coords[0]; clon += nodes[i].coords[1]; });
+    clat /= mainCluster.length; clon /= mainCluster.length;
+
+    var clusterNames = mainCluster.map(function(i){ return nodes[i].name; });
+
+    // Each outlier cluster node = anomaly
+    // Find its nearest neighbor IN the main cluster to show the distance gap
+    outlierClusters.forEach(function(cluster){
+      cluster.forEach(function(idx){
+        var node = nodes[idx];
+        var minDist = Infinity;
+        var nearestName = '';
+        mainCluster.forEach(function(ci){
+          var d = haversine(node.coords, nodes[ci].coords);
+          if (d < minDist) { minDist = d; nearestName = nodes[ci].name; }
+        });
+        anomalies.push({
+          veh: veh,
+          comuna: node.name,
+          isos: node.isos,
+          distToCluster: Math.round(minDist),
+          nearestInCluster: nearestName,
+          clusterComunas: clusterNames,
+          clusterSize: mainCluster.length
+        });
+      });
+    });
+
+    if (unknownComunas.length) skippedVehs.push({veh:veh, unknown:unknownComunas});
+  });
+
+  // ── Render ──
+  gid('anomalySubtitle').textContent = anomalies.length + ' comunas aisladas detectadas en ' +
+    Object.keys(anomalies.reduce(function(acc,a){acc[a.veh]=1;return acc;},{})).length + ' vehiculo(s)';
+
+  var body = gid('anomalyBody');
+
+  if (!anomalies.length) {
+    var skipNote = skippedVehs.length ? '<br><br><em>Comunas sin coordenadas ignoradas: ' +
+      skippedVehs.map(function(s){ return s.unknown.join(', '); }).join('; ') + '</em>' : '';
+    body.innerHTML = '<div class="no-anomalies"><div class="no-anomalies-icon">&#9989;</div>' +
+      '<div style="font-size:13px;font-weight:600;">Todas las comunas son adyacentes entre si</div>' +
+      '<div style="font-size:11px;color:var(--text-dim);text-align:center;max-width:380px;margin-top:6px">' +
+      'No se encontraron comunas aisladas del grupo principal de cada vehiculo (umbral: ' + MAX_CLUSTER_KM + ' km).' + skipNote +
+      '</div></div>';
+  } else {
+    // Group by vehicle
+    var byVeh = {};
+    anomalies.forEach(function(a){ if(!byVeh[a.veh]) byVeh[a.veh]=[]; byVeh[a.veh].push(a); });
+
+    var html = '';
+
+    // Settings bar
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;">' +
+      '<span style="font-size:10px;color:var(--text-dim)">Umbral de adyacencia:</span>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--orange);font-family:var(--mono)">' + MAX_CLUSTER_KM + ' km</span>' +
+      '<span style="font-size:10px;color:var(--text-dim);margin-left:8px">Una comuna es anomala si su vecina mas cercana en la ruta esta a mas de ' + MAX_CLUSTER_KM + ' km.</span>' +
+      '</div>';
+
+    Object.entries(byVeh).forEach(function(be){
+      var vehName = be[0], items = be[1];
+      items.sort(function(a,b){ return b.distToCluster - a.distToCluster; });
+
+      html += '<div class="anomaly-veh-section">';
+      html += '<div class="anomaly-veh-name">&#128667; ' + escH(vehName) +
+        ' <span class="pill pill-red">' + items.length + ' comuna' + (items.length!==1?'s':'') + ' aislada' + (items.length!==1?'s':'') + '</span>' +
+        '<span class="pill pill-dim">Cluster principal: ' + escH(items[0].clusterComunas.slice(0,4).join(', ')) + (items[0].clusterComunas.length>4?' +' + (items[0].clusterComunas.length-4):'') + '</span>' +
+        '</div>';
+
+      items.forEach(function(item){
+        var chips = item.isos.map(function(r){
+          return '<button class="anomaly-iso-chip" data-iso="' + escH(r.iso) + '">' + escH(r.iso) + '</button>';
+        }).join('');
+
+        var sevColor = item.distToCluster > 15 ? '#ff4444' : item.distToCluster > 10 ? '#ff7b72' : '#f0883e';
+        var sevLabel = item.distToCluster > 15 ? 'MUY LEJOS' : item.distToCluster > 10 ? 'LEJOS' : 'SEPARADA';
+
+        html += '<div class="anomaly-item">' +
+          '<div class="anomaly-item-icon">&#128205;</div>' +
+          '<div class="anomaly-item-body">' +
+            '<div class="anomaly-item-comuna">' + escH(item.comuna) + '</div>' +
+            '<div class="anomaly-item-reason">' +
+              'Mas cercana al cluster: <strong style="color:var(--text)">' + escH(item.nearestInCluster) + '</strong> &nbsp;|&nbsp; ' +
+              'Gap: <strong style="color:' + sevColor + '">' + item.distToCluster + ' km</strong> &nbsp;|&nbsp; ' +
+              item.isos.length + ' ISO' + (item.isos.length!==1?'s':'') +
+            '</div>' +
+            '<div class="anomaly-item-isos">' + chips + '</div>' +
+          '</div>' +
+          '<div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">' +
+            '<div style="font-size:20px;font-weight:800;color:' + sevColor + ';font-family:var(--mono)">' + item.distToCluster + 'km</div>' +
+            '<div style="font-size:8px;font-weight:700;background:' + sevColor + '22;color:' + sevColor + ';border:1px solid ' + sevColor + '44;border-radius:20px;padding:1px 7px">' + sevLabel + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+
+      html += '</div>';
+    });
+
+    if (skippedVehs.length) {
+      html += '<div style="padding:10px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-dim)">' +
+        '<strong>Comunas sin coordenadas (no analizadas):</strong> ' +
+        skippedVehs.map(function(s){ return escH(s.unknown.join(', ')); }).join(' &mdash; ') +
+        '</div>';
+    }
+    html += '<div style="padding:10px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-dim)">Clic en cualquier ISO para copiarla al portapapeles.</div>';
+
+    body.innerHTML = html;
+    body.querySelectorAll('.anomaly-iso-chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ copiarTextoFlash(this.getAttribute('data-iso'), 'ISO copiada'); });
+    });
+  }
+
+  gid('anomalyOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAnomalyModal() { gid('anomalyOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+function anomalyClickOutside(e) { if (e.target===gid('anomalyOverlay')) closeAnomalyModal(); }
+
+// ── CFP ──
+function openCfp(col, btnEl, ctx) {
+  ctx = ctx || 'rev';
+  cfp_ctx = ctx; cfp_col = col; cfp_btn_el = btnEl;
+  var dataset = ctx==='modal' ? modalData : revData;
+  var filters  = ctx==='modal' ? modalFilters : revFilters;
+  var allVals = [];
+  var seen = {};
+  dataset.forEach(function(r){ var v=r[col]!=null?r[col]:''; if(!seen[v]){seen[v]=1;allVals.push(v);} });
+  allVals.sort(function(a,b){return a.localeCompare(b,'es');});
+  cfp_all = allVals;
+  cfp_pending = filters[col] ? new Set(filters[col]) : new Set(allVals);
+  var labels = {iso:'ISO', dir:'Direccion', obs:'Observacion'};
+  gid('cfp-title').textContent = labels[col]||col;
+  gid('cfp-search').value = '';
+  buildCfpList(allVals);
+  var rect = btnEl.getBoundingClientRect();
+  var popup = gid('cfp');
+  popup.style.top = (rect.bottom+4)+'px';
+  var left = rect.left;
+  if (left+250>window.innerWidth-10) left=window.innerWidth-255;
+  popup.style.left = left+'px';
+  popup.classList.add('open');
+  gid('cfp-search').focus();
+}
+
+function buildCfpList(vals) {
+  gid('cfp-list').innerHTML = vals.map(function(v){
+    var chk = cfp_pending.has(v)?'checked':'';
+    var label = v===''?'(Vacio)':escH(v);
+    var blank = v===''?'blank':'';
+    return '<label class="cfp-item '+blank+'"><input type="checkbox" value="'+escH(v)+'" '+chk+' onchange="cfpToggle(this)"><label>'+label+'</label></label>';
+  }).join('');
+}
+
+function cfpToggle(cb) { var v=cb.value; if(cb.checked) cfp_pending.add(v); else cfp_pending.delete(v); }
+
+function cfpSearch(q) {
+  var lo=q.toLowerCase();
+  buildCfpList(cfp_all.filter(function(v){return v.toLowerCase().indexOf(lo)>=0;}));
+}
+
+function cfpSelAll(val) {
+  var q=gid('cfp-search').value.toLowerCase();
+  cfp_all.filter(function(v){return v.toLowerCase().indexOf(q)>=0;}).forEach(function(v){
+    if(val) cfp_pending.add(v); else cfp_pending.delete(v);
+  });
+  buildCfpList(cfp_all.filter(function(v){return v.toLowerCase().indexOf(q)>=0;}));
+}
+
+function cfpApply() {
+  if(!cfp_col) return;
+  var dataset = cfp_ctx==='modal' ? modalData : revData;
+  var allVals = []; var seen={};
+  dataset.forEach(function(r){var v=r[cfp_col]!=null?r[cfp_col]:'';if(!seen[v]){seen[v]=1;allVals.push(v);}});
+  var filters = cfp_ctx==='modal' ? modalFilters : revFilters;
+  var allCovered = allVals.every(function(v){return cfp_pending.has(v);});
+  if (cfp_pending.size >= allVals.length && allCovered) delete filters[cfp_col];
+  else filters[cfp_col] = new Set(cfp_pending);
+  cfpClose();
+  if (cfp_ctx==='modal') renderModalTable(); else renderRevGrid();
+}
+
+function cfpSort(dir) {
+  if(cfp_ctx==='modal'){modalSortCol=dir?cfp_col:null;modalSortDir=dir;}
+  else{revSortCol=dir?cfp_col:null;revSortDir=dir;}
+  var btns=document.querySelectorAll('#cfp .cfp-sort-row button');
+  btns.forEach(function(b){b.style.background='';b.style.color='';});
+  if(dir==='asc'){btns[0].style.background='#FFDA1A';btns[0].style.color='#111';}
+  if(dir==='desc'){btns[1].style.background='#FFDA1A';btns[1].style.color='#111';}
+  cfpApply();
+}
+
+function cfpClose() { gid('cfp').classList.remove('open'); }
+
+document.addEventListener('mousedown', function(e){
+  var cfp=gid('cfp');
+  if(cfp.classList.contains('open') && !cfp.contains(e.target) && !e.target.closest('.th-filter-btn')) cfpClose();
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){
+    cfpClose();
+    if(gid('anomalyOverlay').classList.contains('open')) closeAnomalyModal();
+    else closeModal();
+  }
+});
+
+// ── REVISION TAB ──
+function procesarRevision() {
+  var raw = gid('revInput').value.trim();
+  if(!raw){notif('Pega ISOs primero','err');return;}
+  if(!rawData.length){notif('Carga un archivo primero','err');return;}
+  var isos = raw.split(/[\n\r,;\s]+/).map(function(s){return s.trim().toUpperCase();}).filter(Boolean);
+  if(!isos.length){notif('No se detectaron ISOs','err');return;}
+  var lookup={};
+  rawData.forEach(function(r){lookup[r.iso.toUpperCase()]=r;});
+  revData = isos.map(function(iso){
+    var found=lookup[iso];
+    return {iso:iso, dir:found?found.dir:'—', obs:'Verificar Direccion', _id:Math.random().toString(36).substr(2,9)};
+  });
+  revFilters={}; revSortCol=null; revSortDir=null;
+  renderRevGrid();
+  gid('revActions').style.display='flex';
+  gid('badge-rev').textContent=revData.length;
+  notif('OK: ' + revData.length + ' ISOs en revision');
+}
+
+function limpiarRevision() {
+  revData=[]; revFilters={};
+  gid('revInput').value='';
+  gid('revActions').style.display='none';
+  gid('badge-rev').textContent='0';
+  gid('revGridWrap').innerHTML='<div class="ik-empty"><div class="ik-empty-icon">&#128203;</div>Pega ISOs arriba para comenzar la revision</div>';
+}
+
+function getFilteredRev() {
+  var data = revData.filter(function(row){
+    return Object.keys(revFilters).every(function(col){return revFilters[col].has(row[col]!=null?row[col]:'');});
+  });
+  if(revSortCol&&revSortDir){
+    data=data.slice().sort(function(a,b){
+      var va=(a[revSortCol]||'').toLowerCase(),vb=(b[revSortCol]||'').toLowerCase();
+      return revSortDir==='asc'?va.localeCompare(vb,'es'):vb.localeCompare(va,'es');
+    });
+  }
+  return data;
+}
+
+function renderRevGrid() {
+  var wrap=gid('revGridWrap'), filtered=getFilteredRev();
+  if(!revData.length){wrap.innerHTML='<div class="ik-empty"><div class="ik-empty-icon">&#128203;</div>Pega ISOs arriba para comenzar</div>';return;}
+  var cols=['iso','dir','obs'], headers={iso:'ISO',dir:'Direccion Original',obs:'Observacion'};
+  var h='<div style="height:100%;overflow:auto"><table class="ik-grid-table"><thead><tr><th style="width:30px;background:var(--surface3)"><div class="th-inner" style="justify-content:center;padding:7px 8px"><span>#</span></div></th>';
+  cols.forEach(function(c){
+    var hasF=!!revFilters[c], cnt=hasF?revFilters[c].size:null;
+    h+='<th><div class="th-inner"><span>'+headers[c]+'</span><button class="th-filter-btn'+(hasF?' active':'')+'" onclick="openCfp(\''+c+'\',this,\'rev\')">v'+(hasF?'<span style="font-size:9px">'+cnt+'</span>':'')+'</button></div></th>';
+  });
+  h+='<th style="width:34px;background:var(--surface3)"></th></tr></thead><tbody>';
+  filtered.forEach(function(r,i){
+    h+='<tr data-id="'+r._id+'"><td style="text-align:center;color:var(--text-dim);font-size:10px;border:1px solid var(--border);font-family:var(--mono);user-select:none">'+(i+1)+'</td>'+
+      '<td style="border:1px solid var(--border)"><div class="ik-cell" style="color:#7bb8ff;font-weight:600">'+escH(r.iso)+'</div></td>'+
+      '<td style="border:1px solid var(--border)"><div class="ik-cell">'+escH(r.dir)+'</div></td>'+
+      '<td style="border:1px solid var(--border)"><div class="ik-cell obs-cell" contenteditable="true" data-id="'+r._id+'" onblur="saveRevCell(this)" onkeydown="if(event.key===\'Escape\')this.blur()">'+escH(r.obs)+'</div></td>'+
+      '<td style="text-align:center;border:1px solid var(--border)"><button class="iso-copy-btn" data-iso="'+escH(r.iso)+'" title="Copiar ISO">&#10066;</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  wrap.innerHTML=h;
+  wrap.querySelectorAll('.iso-copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){copiarTextoFlash(this.getAttribute('data-iso'),'ISO copiada');});
+  });
+  gid('revCount').textContent=filtered.length+' de '+revData.length+' filas';
+}
+
+function saveRevCell(el){
+  var id=el.getAttribute('data-id');
+  var r=revData.find(function(x){return x._id===id;}); if(r) r.obs=el.innerText.trim();
+}
+
+function copiarTablaRev() {
+  var filtered=getFilteredRev(); if(!filtered.length){notif('Sin datos','err');return;}
+  var hdS='border:1px solid #000;padding:7px 11px;font-weight:bold;background:#0051BA;color:#FFDA1A;font-family:Arial,sans-serif;font-size:12px;';
+  var tdS='border:1px solid #000;padding:6px 10px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
+  var html='<table style="border-collapse:collapse;"><tr><th style="'+hdS+'">ISO</th><th style="'+hdS+'">Direccion Original</th><th style="'+hdS+'">Observacion</th></tr>';
+  filtered.forEach(function(r){html+='<tr><td style="'+tdS+'font-weight:700;">'+escH(r.iso)+'</td><td style="'+tdS+'">'+escH(r.dir)+'</td><td style="'+tdS+'">'+escH(r.obs)+'</td></tr>';});
+  html+='</table>';
+  var tsv='ISO\tDireccion Original\tObservacion\n';
+  filtered.forEach(function(r){tsv+=r.iso+'\t'+r.dir+'\t'+r.obs+'\n';});
+  tryCopyRich(html, tsv, 'Tabla copiada');
+}
+
+function copiarISOsRev() {
+  var f=getFilteredRev(); if(!f.length){notif('Sin datos','err');return;}
+  copiarTextoFlash(f.map(function(r){return r.iso;}).join('\n'), f.length+' ISOs copiadas');
+}
+
+// ── UTILS ──
+function copiarTextoFlash(text, msg) {
+  msg = msg || 'Copiado';
+  try {
+    navigator.clipboard.writeText(text).then(function(){flashCopy(msg);}).catch(function(){fbCopy(text,msg);});
+  } catch(e){ fbCopy(text,msg); }
+}
+
+function tryCopyRich(html, plain, msg) {
+  try {
+    var item = new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})});
+    navigator.clipboard.write([item]).then(function(){flashCopy(msg);}).catch(function(){fbCopy(plain,msg);});
+  } catch(e){ fbCopy(plain,msg); }
+}
+
+function fbCopy(text, msg) {
+  var ta=document.createElement('textarea'); ta.value=text;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); flashCopy(msg||'Copiado');
+}
+
+function limpiarTodo() {
+  rawData=[]; revData=[]; revFilters={}; isoGroupStore={};
+  gid('uploadZone').style.display='';
+  gid('statsBar').style.display='none';
+  gid('vehiclesScroll').innerHTML='';
+  gid('badge-isos').textContent='0';
+  gid('btnAnomaly').disabled=true;
+  limpiarRevision();
+  notif('Todo limpiado');
+}
+
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
