@@ -33,7 +33,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); height:
 .ik-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
 .ik-tbadge{background:var(--blue);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:18px;text-align:center;font-family:var(--mono);}
 .ik-main{height:calc(100vh - 52px - 37px);display:flex;flex-direction:column;}
-.ik-panel{display:none;flex:1;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
+.ik-panel{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
 .ik-panel.active{display:flex;}
 button{font-family:var(--sans);font-weight:600;font-size:12px;border:none;border-radius:var(--rs);cursor:pointer;padding:6px 12px;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
 button:disabled{opacity:.35;cursor:not-allowed;}
@@ -58,7 +58,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .ik-stat-lbl{font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .btn-anomaly{background:linear-gradient(135deg,#2d1b00,#5a3200);color:var(--orange);border:1px solid rgba(240,136,62,.35);font-size:11px;padding:7px 14px;border-radius:var(--rs);transition:all .15s;white-space:nowrap;}
 .btn-anomaly:hover:not(:disabled){background:linear-gradient(135deg,#3d2500,#7a4500);border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(240,136,62,.25);}
-.vehicles-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.vehicles-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
 .veh-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
 .veh-block:hover{border-color:var(--border2);}
 .veh-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;transition:background .12s;gap:10px;user-select:none;}
@@ -306,7 +306,8 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <div class="ik-stat"><div class="ik-stat-val" id="st-vehs">0</div><div class="ik-stat-lbl">Vehiculos</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-comunas">0</div><div class="ik-stat-lbl">Comunas</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-unicas" style="color:var(--orange)">0</div><div class="ik-stat-lbl">1 ISO / comuna</div></div>
-      <div style="margin-left:auto">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:7px;">
+        <button class="btn-ghost btn-sm" id="btnToggleAll" onclick="toggleAllVehicles()">&#9660; Expandir todo</button>
         <button class="btn-anomaly" id="btnAnomaly" onclick="analizarAnomalias()" disabled>
           &#128301; Detectar Comunas Anomalas
         </button>
@@ -486,6 +487,15 @@ function processFile(file) {
   else reader.readAsText(file, 'UTF-8');
 }
 
+// ── TOGGLE ALL VEHICLES ──
+function toggleAllVehicles() {
+  var blocks = document.querySelectorAll('.veh-block');
+  var anyOpen = Array.prototype.some.call(blocks, function(b){ return b.classList.contains('open'); });
+  blocks.forEach(function(b){ anyOpen ? b.classList.remove('open') : b.classList.add('open'); });
+  var btn = gid('btnToggleAll');
+  if (btn) btn.textContent = anyOpen ? '▼ Expandir todo' : '▲ Colapsar todo';
+}
+
 // ── RENDER MAPA ──
 function renderMapa() {
   if (!rawData.length) return;
@@ -525,14 +535,19 @@ function renderMapa() {
     var soloUnaCount = Object.values(comunas).filter(function(arr){ return arr.length===1; }).length;
 
     var block = document.createElement('div');
-    block.className = 'veh-block open';
+    block.className = 'veh-block';
 
     var header = document.createElement('div');
     header.className = 'veh-header';
     var pillsHtml = '<span class="pill pill-blue">' + totalIsos + ' ISOs</span> <span class="pill pill-dim">' + Object.keys(comunas).length + ' comunas</span>';
     if (soloUnaCount) pillsHtml += ' <span class="pill pill-orange">! ' + soloUnaCount + ' solo 1</span>';
     header.innerHTML = '<div class="veh-left"><span style="font-size:18px">&#128667;</span><div class="veh-name">' + escH(veh) + '</div><div class="veh-pills">' + pillsHtml + '</div></div><div class="veh-chev">v</div>';
-    header.addEventListener('click', function(){ block.classList.toggle('open'); });
+    header.addEventListener('click', function(){
+      block.classList.toggle('open');
+      var anyOpen = Array.prototype.some.call(document.querySelectorAll('.veh-block'), function(b){ return b.classList.contains('open'); });
+      var btn = gid('btnToggleAll');
+      if (btn) btn.textContent = anyOpen ? '▲ Colapsar todo' : '▼ Expandir todo';
+    });
 
     var body = document.createElement('div');
     body.className = 'veh-body';
