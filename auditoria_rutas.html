@@ -33,8 +33,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); height:
 .ik-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
 .ik-tbadge{background:var(--blue);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:18px;text-align:center;font-family:var(--mono);}
 .ik-tbadge.red{background:var(--red);}
-.ik-main{height:calc(100vh - 52px - 37px);display:flex;flex-direction:column;}
-.ik-panel{display:none;flex:1;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
+.ik-main{height:calc(100vh - 52px - 37px);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.ik-panel{display:none;flex:1;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;min-height:0;}
 .ik-panel.active{display:flex;}
 button{font-family:var(--sans);font-weight:600;font-size:12px;border:none;border-radius:var(--rs);cursor:pointer;padding:6px 12px;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
 button:disabled{opacity:.35;cursor:not-allowed;}
@@ -59,8 +59,8 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .ik-stat-lbl{font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .btn-anomaly{background:linear-gradient(135deg,#2d1b00,#5a3200);color:var(--orange);border:1px solid rgba(240,136,62,.35);font-size:11px;padding:7px 14px;border-radius:var(--rs);transition:all .15s;white-space:nowrap;}
 .btn-anomaly:hover:not(:disabled){background:linear-gradient(135deg,#3d2500,#7a4500);border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(240,136,62,.25);}
-.vehicles-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
-.veh-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
+.vehicles-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:0;}
+.veh-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;flex-shrink:0;}
 .veh-block:hover{border-color:var(--border2);}
 .veh-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;transition:background .12s;gap:10px;user-select:none;}
 .veh-header:hover{background:var(--surface2);}
@@ -277,7 +277,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .vvt-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:var(--rs);padding:5px 10px;font-size:12px;cursor:pointer;transition:all .12s;line-height:1;}
 .vvt-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
 /* ─── VEHICLE GRID ─── */
-.veh-grid-wrap{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;align-content:start;}
+.veh-grid-wrap{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;align-content:start;min-height:0;}
 .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color .15s,background .12s;}
 .veh-card:hover{border-color:var(--blue-mid);background:var(--surface2);}
 .veh-card:active{transform:scale(.98);}
@@ -1390,7 +1390,20 @@ function realizarAnalisisGeo(){
   _lMarkers=[];_lRoutes=[];
 
   geoConflicts=[];
-  var ALIASES={'NUNA':'NUNOA','TILTIL':'TIL TIL','TIL TIL':'TILTIL','NUNO':'NUNOA'};
+  var ALIASES={
+      'NUNA':'NUNOA','NUNOA':'NUNOA','TILTIL':'TILTIL','TIL TIL':'TILTIL',
+      'NUNO':'NUNOA','MAIPU':'MAIPU','MAIPÚ':'MAIPU',
+      'ÑUNOA':'NUNOA','PEÑALOLEN':'PENALOLEN','PENALOLEN':'PENALOLEN',
+      'PEÑAFLOR':'PENAFLOR','CONCHALI':'CONCHALI','CONCHALÍ':'CONCHALI',
+      'SAN RAMON':'SAN RAMON','SAN RAMÓN':'SAN RAMON',
+      'SAN JOAQUIN':'SAN JOAQUIN','SAN JOAQUÍN':'SAN JOAQUIN',
+      'LA CISTERNA':'LA CISTERNA','LO ESPEJO':'LO ESPEJO',
+      'PEDRO AGUIRRE CERDA':'PEDRO AGUIRRE CERDA','PAC':'PEDRO AGUIRRE CERDA',
+      'EST CENTRAL':'ESTACION CENTRAL','ESTACION CENTRAL':'ESTACION CENTRAL',
+      'QUINTA NORMAL':'QUINTA NORMAL','QTA NORMAL':'QUINTA NORMAL',
+      'LO BARNECHEA':'LO BARNECHEA','BARNECHEA':'LO BARNECHEA',
+      'CALERA DE TANGO':'CALERA DE TANGO','CAL DE TANGO':'CALERA DE TANGO'
+    };
 
   pts.forEach(function(r){
     var kDir=normK(r.comuna); if(!kDir) return;
@@ -1398,11 +1411,15 @@ function realizarAnalisisGeo(){
     var kCoord=comunaFromCoords(r.lat,r.lng); if(!kCoord) return;
     var a=ALIASES[kDir]||kDir, b=ALIASES[kCoord]||kCoord;
     if(a===b) return;
-    // Also check if they are effectively same commune (partial match)
+    // Partial match guard (e.g. PEDRO AGUIRRE CERDA vs PAC)
     if(a.indexOf(b)>=0||b.indexOf(a)>=0) return;
+    // Normalise accents one more time on both sides
+    var aa=a.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    var bb=b.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(aa===bb) return;
     var stCoords=getCoords(r.comuna);
     var dist=stCoords?haversine([r.lat,r.lng],stCoords):0;
-    if(dist<1.5) return; // very close to stated centroid, ignore
+    if(dist<2.0) return; // very close to stated centroid — likely border area, ignore
     var niceNames={'SANTIAGO':'Santiago','PROVIDENCIA':'Providencia','LAS CONDES':'Las Condes','VITACURA':'Vitacura','NUNOA':'Ñuñoa','LA FLORIDA':'La Florida','MAIPU':'Maipú','PUDAHUEL':'Pudahuel','CERRILLOS':'Cerrillos','QUILICURA':'Quilicura','HUECHURABA':'Huechuraba','RECOLETA':'Recoleta','INDEPENDENCIA':'Independencia','CONCHALI':'Conchalí','RENCA':'Renca','CERRO NAVIA':'Cerro Navia','LO PRADO':'Lo Prado','ESTACION CENTRAL':'Est. Central','QUINTA NORMAL':'Qta. Normal','LO ESPEJO':'Lo Espejo','PEDRO AGUIRRE CERDA':'P.A.Cerda','SAN MIGUEL':'San Miguel','LA CISTERNA':'La Cisterna','SAN RAMON':'San Ramón','LA PINTANA':'La Pintana','EL BOSQUE':'El Bosque','LA GRANJA':'La Granja','SAN JOAQUIN':'San Joaquín','MACUL':'Macul','PENALOLEN':'Peñalolén','LA REINA':'La Reina','PUENTE ALTO':'Puente Alto','SAN BERNARDO':'San Bernardo','BUIN':'Buín','PAINE':'Paine','TALAGANTE':'Talagante','PENAFLOR':'Peñaflor','MELIPILLA':'Melipilla','LO BARNECHEA':'Lo Barnechea','COLINA':'Colina','LAMPA':'Lampa','TILTIL':'Tiltil','PIRQUE':'Pirque','EL MONTE':'El Monte','PADRE HURTADO':'P.Hurtado','CURACAVI':'Curacaví','CALERA DE TANGO':'Cal.Tango'};
     geoConflicts.push({
       iso:r.iso, veh:r.veh, dir:r.dir,
