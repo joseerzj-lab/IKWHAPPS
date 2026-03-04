@@ -175,6 +175,49 @@ body{overflow:auto;height:auto;min-height:100vh;background:#f0f2f5;}
 /* TOAST */
 #toast{visibility:hidden;position:fixed;z-index:9999;left:50%;bottom:30px;transform:translateX(-50%);background:#0051BA;color:#FFDA1A;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .25s,bottom .25s;white-space:nowrap;}
 #toast.show{visibility:visible;opacity:1;bottom:48px;}
+
+/* ── IKEA EXCEL SELECTION ── */
+.ik-sel-cell {
+  cursor: cell !important;
+  user-select: none !important;
+  position: relative;
+  transition: background .07s;
+}
+.ik-sel-cell.ik-selected {
+  background: rgba(0,81,186,.20) !important;
+  outline: 1px solid rgba(0,81,186,.55);
+  outline-offset: -1px;
+}
+.ik-sel-cell.ik-anchor {
+  background: rgba(0,81,186,.32) !important;
+  outline: 2px solid #0051BA !important;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 14px rgba(0,81,186,.12), 0 0 0 1px rgba(0,81,186,.3);
+}
+/* glow flash on copy */
+.ik-copy-glow {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(.92);
+  background: rgba(63,185,80,.12);
+  border: 1px solid #3fb950;
+  color: #3fb950;
+  font-weight: 700; font-size: 13px;
+  padding: 10px 26px;
+  border-radius: 9px;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s, transform .18s;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 32px rgba(63,185,80,.28);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+.ik-copy-glow.ik-glow-show {
+  opacity: 1;
+  transform: translate(-50%,-50%) scale(1);
+}
+
 </style>
 </head>
 <body>
@@ -1122,5 +1165,162 @@ function estadoPill(est){const e=est.toLowerCase();let c='e-other';if(e.includes
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escAttr(s){return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 </script>
+
+// ═══════════════════════════════════════════════
+//  IKEA EXCEL-LIKE CELL SELECTION (universal)
+// ═══════════════════════════════════════════════
+(function() {
+  var _anchor = null, _active = null, _dragging = false;
+
+  // ── inject glow div ──
+  var _glow = document.createElement('div');
+  _glow.className = 'ik-copy-glow';
+  _glow.id = 'ikCopyGlow';
+  _glow.textContent = '✓ Copiado';
+  document.body.appendChild(_glow);
+  var _glowT;
+  function flashGlow() {
+    _glow.classList.add('ik-glow-show');
+    clearTimeout(_glowT);
+    _glowT = setTimeout(function(){ _glow.classList.remove('ik-glow-show'); }, 1600);
+  }
+
+  // ── mark all td/th in standard tables as selectable ──
+  function markSelectableCells() {
+    document.querySelectorAll('tbody td, .ik-grid-table tbody td').forEach(function(td) {
+      td.classList.add('ik-sel-cell');
+    });
+  }
+
+  // ── also watch for dynamically rendered tables ──
+  var _mo = new MutationObserver(function() { markSelectableCells(); });
+  _mo.observe(document.body, { childList: true, subtree: true });
+  markSelectableCells();
+
+  // ── get row/col indices ──
+  function idx(td) {
+    var tr = td.parentElement;
+    var ri = Array.from(tr.parentElement.rows || tr.parentElement.children).indexOf(tr);
+    var ci = Array.from(tr.cells || tr.children).indexOf(td);
+    return { r: ri, c: ci };
+  }
+
+  // ── clear all selection highlight ──
+  function clearSel() {
+    document.querySelectorAll('.ik-selected,.ik-anchor').forEach(function(el) {
+      el.classList.remove('ik-selected','ik-anchor');
+    });
+  }
+
+  // ── select range between two cells (must be in same table) ──
+  function selectRange(a, b) {
+    if (!a || !b) return;
+    // find shared table
+    var tA = a.closest('table'), tB = b.closest('table');
+    if (!tA || tA !== tB) { clearSel(); if(a) { a.classList.add('ik-anchor'); } return; }
+    clearSel();
+    var ia = idx(a), ib = idx(b);
+    var r1 = Math.min(ia.r,ib.r), r2 = Math.max(ia.r,ib.r);
+    var c1 = Math.min(ia.c,ib.c), c2 = Math.max(ia.c,ib.c);
+    var tbody = a.closest('tbody') || a.closest('table');
+    Array.from(tbody.rows || tbody.querySelectorAll('tr')).slice(r1, r2+1).forEach(function(tr) {
+      Array.from(tr.cells).slice(c1, c2+1).forEach(function(td) {
+        td.classList.add('ik-selected');
+      });
+    });
+    a.classList.add('ik-anchor');
+  }
+
+  // ── get text from selected cells as TSV ──
+  function getSelText() {
+    var cells = Array.from(document.querySelectorAll('.ik-selected,.ik-anchor'));
+    if (!cells.length) return '';
+    var byRow = {};
+    cells.forEach(function(td) {
+      var i = idx(td);
+      if (!byRow[i.r]) byRow[i.r] = [];
+      byRow[i.r].push({ c: i.c, text: (td.innerText || td.textContent || '').trim() });
+    });
+    return Object.keys(byRow).sort(function(a,b){return a-b;}).map(function(r) {
+      return byRow[r].sort(function(a,b){return a.c-b.c;}).map(function(x){return x.text;}).join('\t');
+    }).join('\n');
+  }
+
+  // ── copy to clipboard ──
+  function copySelection() {
+    var text = getSelText();
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flashGlow).catch(function(){fallbackCopy(text);});
+    } else { fallbackCopy(text); }
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    flashGlow();
+  }
+
+  // ── mouse events ──
+  document.addEventListener('mousedown', function(e) {
+    var td = e.target.closest('tbody td.ik-sel-cell');
+    if (!td) return;
+    // Don't hijack contenteditable grid cells focus
+    if (td.querySelector('[contenteditable]') || td.getAttribute('contenteditable')) return;
+    _dragging = true; _anchor = td; _active = td;
+    clearSel();
+    td.classList.add('ik-anchor');
+    e.preventDefault();
+  }, true);
+
+  document.addEventListener('mouseover', function(e) {
+    if (!_dragging || !_anchor) return;
+    var td = e.target.closest('tbody td.ik-sel-cell');
+    if (!td) return;
+    _active = td;
+    selectRange(_anchor, _active);
+  });
+
+  document.addEventListener('mouseup', function() { _dragging = false; });
+
+  // click outside → clear
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('tbody td')) { clearSel(); _anchor=null; _active=null; }
+  });
+
+  // ── keyboard ──
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+C → copy selection if any selected cells
+    if ((e.ctrlKey||e.metaKey) && e.key==='c') {
+      var hasSel = document.querySelectorAll('.ik-selected,.ik-anchor').length > 0;
+      if (!hasSel) return;
+      copySelection();
+      e.stopPropagation();
+      return;
+    }
+    // Shift+Arrow → extend selection
+    if (e.shiftKey && ['ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key) && _anchor) {
+      e.preventDefault();
+      var cur = _active || _anchor;
+      var table = cur.closest('table');
+      if (!table) return;
+      var ia = idx(cur);
+      var rows = Array.from(cur.closest('tbody').rows);
+      var nr = ia.r, nc = ia.c;
+      if (e.key==='ArrowDown')  nr = Math.min(nr+1, rows.length-1);
+      if (e.key==='ArrowUp')    nr = Math.max(nr-1, 0);
+      if (e.key==='ArrowRight') nc = Math.min(nc+1, rows[0].cells.length-1);
+      if (e.key==='ArrowLeft')  nc = Math.max(nc-1, 0);
+      var newCell = rows[nr] && rows[nr].cells[nc];
+      if (newCell) { _active = newCell; selectRange(_anchor, _active); }
+    }
+  });
+
+  // expose globally so copy buttons can call it
+  window.ikCopySelection = copySelection;
+  window.ikFlashGlow = flashGlow;
+})();
+
 </body>
 </html>

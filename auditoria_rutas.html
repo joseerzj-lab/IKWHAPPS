@@ -32,8 +32,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); height:
 .ik-tab:hover{color:var(--text);}
 .ik-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
 .ik-tbadge{background:var(--blue);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:18px;text-align:center;font-family:var(--mono);}
+.ik-tbadge.red{background:var(--red);}
 .ik-main{height:calc(100vh - 52px - 37px);display:flex;flex-direction:column;}
-.ik-panel{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
+.ik-panel{display:none;flex:1;overflow:hidden;flex-direction:column;padding:12px 14px;gap:9px;}
 .ik-panel.active{display:flex;}
 button{font-family:var(--sans);font-weight:600;font-size:12px;border:none;border-radius:var(--rs);cursor:pointer;padding:6px 12px;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
 button:disabled{opacity:.35;cursor:not-allowed;}
@@ -58,7 +59,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .ik-stat-lbl{font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .btn-anomaly{background:linear-gradient(135deg,#2d1b00,#5a3200);color:var(--orange);border:1px solid rgba(240,136,62,.35);font-size:11px;padding:7px 14px;border-radius:var(--rs);transition:all .15s;white-space:nowrap;}
 .btn-anomaly:hover:not(:disabled){background:linear-gradient(135deg,#3d2500,#7a4500);border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(240,136,62,.25);}
-.vehicles-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.vehicles-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
 .veh-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
 .veh-block:hover{border-color:var(--border2);}
 .veh-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;transition:background .12s;gap:10px;user-select:none;}
@@ -180,6 +181,44 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .ik-notif-err{background:rgba(248,81,73,.15);color:#ff7b72;border:1px solid var(--red);}
 .copy-flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#0d1117;font-weight:700;font-size:12px;padding:8px 20px;border-radius:20px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .25s;box-shadow:0 4px 20px rgba(63,185,80,.4);}
 .copy-flash.show{opacity:1;}
+
+/* ── GEO MAP TAB ── */
+.geo-layout{display:flex;flex:1;gap:10px;overflow:hidden;min-height:0;}
+.geo-sidebar{width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.geo-sidebar-inner{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.geo-canvas-wrap{flex:1;position:relative;background:#06090f;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;min-height:300px;}
+#geoCanvas{display:block;width:100%;height:100%;cursor:grab;}
+#geoCanvas.dragging{cursor:grabbing;}
+.geo-toolbar{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.btn-geo{background:linear-gradient(135deg,#001d4a,#003a8c 60%,#0051ba);color:var(--yellow);border:1px solid rgba(0,81,186,.5);font-size:11px;padding:7px 16px;border-radius:var(--rs);transition:all .15s;white-space:nowrap;font-weight:700;letter-spacing:.5px;}
+.btn-geo:hover:not(:disabled){background:linear-gradient(135deg,#003080,#0051ba 60%,#1a6dd4);border-color:var(--yellow);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,81,186,.4);}
+.geo-stat-row{display:flex;gap:6px;align-items:center;}
+.geo-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:6px 12px;display:flex;flex-direction:column;gap:1px;}
+.geo-stat-val{font-size:18px;font-weight:800;font-family:var(--mono);line-height:1;}
+.geo-stat-lbl{font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.conflict-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;border-left:3px solid var(--red);}
+.conflict-card:hover{border-color:var(--red);background:rgba(248,81,73,.06);}
+.conflict-card.selected{border-color:var(--red);background:rgba(248,81,73,.1);box-shadow:0 0 12px rgba(248,81,73,.2);}
+.conf-iso{font-size:12px;font-weight:700;color:#ff7b72;font-family:var(--mono);}
+.conf-veh{font-size:10px;color:var(--text-dim);margin-top:2px;}
+.conf-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.conf-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;font-family:var(--mono);white-space:nowrap;}
+.conf-badge-dir{background:rgba(0,81,186,.15);color:#7bb8ff;border:1px solid rgba(0,81,186,.3);}
+.conf-badge-coord{background:rgba(248,81,73,.15);color:#ff7b72;border:1px solid rgba(248,81,73,.3);}
+.conf-arrow{color:var(--text-dim);font-size:11px;}
+.conf-dist{font-size:9px;color:var(--orange);font-family:var(--mono);}
+.geo-no-data{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;color:var(--text-dim);}
+.geo-no-data-icon{font-size:40px;opacity:.4;}
+.geo-map-zoom{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:4px;z-index:10;}
+.geo-zoom-btn{width:28px;height:28px;background:rgba(22,27,34,.9);border:1px solid var(--border);border-radius:var(--rs);color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0;}
+.geo-zoom-btn:hover{background:var(--surface2);color:var(--yellow);}
+.geo-reset-btn{width:28px;height:28px;background:rgba(22,27,34,.9);border:1px solid var(--border);border-radius:var(--rs);color:var(--text-muted);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0;}
+.geo-reset-btn:hover{background:var(--surface2);color:var(--yellow);}
+.geo-legend{position:absolute;top:10px;left:10px;background:rgba(13,17,23,.85);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;font-size:10px;z-index:10;display:flex;flex-direction:column;gap:5px;}
+.legend-item{display:flex;align-items:center;gap:6px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.geo-sidebar-header{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);padding:4px 0;}
+.conflict-empty{color:var(--text-dim);font-size:11px;text-align:center;padding:20px;font-style:italic;}
 </style>
 </head>
 <body>
@@ -266,7 +305,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
     <span style="font-size:20px">&#128269;</span>
     <div>
       <h1>Auditoria de Rutas</h1>
-      <div class="ik-header-sub">analisis de comunas · revision de direcciones</div>
+      <div class="ik-header-sub">analisis de comunas · geoauditoria · revision</div>
     </div>
   </div>
   <div class="ik-header-right">
@@ -282,15 +321,20 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 <!-- TABS -->
 <div class="ik-tabs">
   <div class="ik-tab active" onclick="aTab('tab-mapa',this)">
-    Mapa de Rutas <span class="ik-tbadge" id="badge-isos">0</span>
+    &#128667; Mapa de Rutas <span class="ik-tbadge" id="badge-isos">0</span>
+  </div>
+  <div class="ik-tab" onclick="aTab('tab-geo',this)">
+    &#128508; Mapa Geo <span class="ik-tbadge red" id="badge-geo">0</span>
   </div>
   <div class="ik-tab" onclick="aTab('tab-revision',this)">
-    Revision <span class="ik-tbadge" id="badge-rev">0</span>
+    &#128203; Revision <span class="ik-tbadge" id="badge-rev">0</span>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="ik-main">
+
+  <!-- TAB 1: Mapa de Rutas (existing) -->
   <div class="ik-panel active" id="tab-mapa">
     <div class="ik-upload-zone" id="uploadZone"
          onclick="document.getElementById('fileInput').click()"
@@ -299,15 +343,14 @@ button:disabled{opacity:.35;cursor:not-allowed;}
          ondrop="onDrop(event)">
       <div class="ik-upload-icon">&#128196;</div>
       <div class="ik-upload-label">Arrastra tu archivo o haz clic para cargar</div>
-      <div class="ik-upload-sub">Columnas requeridas: Titulo · Vehiculo · Direccion</div>
+      <div class="ik-upload-sub">Columnas requeridas: Titulo · Vehiculo · Direccion — Opcionales: Lat · Lng · Parada</div>
     </div>
     <div class="ik-stats" id="statsBar" style="display:none">
       <div class="ik-stat"><div class="ik-stat-val" id="st-isos">0</div><div class="ik-stat-lbl">ISOs</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-vehs">0</div><div class="ik-stat-lbl">Vehiculos</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-comunas">0</div><div class="ik-stat-lbl">Comunas</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-unicas" style="color:var(--orange)">0</div><div class="ik-stat-lbl">1 ISO / comuna</div></div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:7px;">
-        <button class="btn-ghost btn-sm" id="btnToggleAll" onclick="toggleAllVehicles()">&#9660; Expandir todo</button>
+      <div style="margin-left:auto">
         <button class="btn-anomaly" id="btnAnomaly" onclick="analizarAnomalias()" disabled>
           &#128301; Detectar Comunas Anomalas
         </button>
@@ -316,6 +359,65 @@ button:disabled{opacity:.35;cursor:not-allowed;}
     <div class="vehicles-scroll" id="vehiclesScroll"></div>
   </div>
 
+  <!-- TAB 2: Mapa Geo (NEW) -->
+  <div class="ik-panel" id="tab-geo">
+    <div id="geoNoData" class="geo-no-data">
+      <div class="geo-no-data-icon">&#127758;</div>
+      <div style="font-size:13px;font-weight:600;">Carga un archivo con columnas de coordenadas</div>
+      <div style="font-size:11px;max-width:360px;text-align:center;line-height:1.6;">
+        El archivo necesita columnas <strong style="color:var(--yellow)">Latitud</strong> y <strong style="color:var(--yellow)">Longitud</strong> para detectar conflictos de georreferenciación.<br>
+        Opcional: columna <strong style="color:#7bb8ff">Parada</strong> para mostrar el orden de la ruta.
+      </div>
+    </div>
+
+    <div id="geoContent" style="display:none;flex:1;flex-direction:column;gap:9px;overflow:hidden;" class="ik-panel active" style="padding:0;">
+      <div class="geo-toolbar">
+        <button class="btn-geo" id="btnGeoAnalisis" onclick="realizarAnalisisGeo()">
+          &#128269; Realizar Análisis
+        </button>
+        <div class="geo-stat-row" id="geoStatRow" style="display:none">
+          <div class="geo-stat"><div class="geo-stat-val" id="gst-conflictos" style="color:var(--red)">0</div><div class="geo-stat-lbl">Conflictos</div></div>
+          <div class="geo-stat"><div class="geo-stat-val" id="gst-vehs">0</div><div class="geo-stat-lbl">Vehículos</div></div>
+          <div class="geo-stat"><div class="geo-stat-val" id="gst-puntos">0</div><div class="geo-stat-lbl">Puntos geo</div></div>
+        </div>
+        <div style="margin-left:auto;font-size:10px;color:var(--text-dim)">
+          Scroll: zoom · Drag: pan · Click conflicto: centrar mapa
+        </div>
+      </div>
+
+      <div class="geo-layout">
+        <!-- Sidebar with conflicts -->
+        <div class="geo-sidebar">
+          <div class="geo-sidebar-header" id="geoSidebarHeader">Conflictos detectados</div>
+          <div class="geo-sidebar-inner" id="geoConflictList">
+            <div class="conflict-empty">Presiona "Realizar Análisis" para detectar conflictos de georreferenciación</div>
+          </div>
+        </div>
+
+        <!-- Canvas map -->
+        <div class="geo-canvas-wrap" id="geoCanvasWrap">
+          <canvas id="geoCanvas"></canvas>
+
+          <!-- Zoom controls -->
+          <div class="geo-map-zoom">
+            <button class="geo-zoom-btn" onclick="geoZoomIn()" title="Acercar">+</button>
+            <button class="geo-zoom-btn" onclick="geoZoomOut()" title="Alejar">−</button>
+            <button class="geo-reset-btn" onclick="geoResetView()" title="Restablecer vista">⌂</button>
+          </div>
+
+          <!-- Legend -->
+          <div class="geo-legend" id="geoLegend" style="display:none">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--text-dim);margin-bottom:3px;">LEYENDA</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#44ff88;box-shadow:0 0 4px #44ff88;"></div><span style="color:var(--text-muted)">Punto OK</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff4444;box-shadow:0 0 6px #ff4444;"></div><span style="color:var(--text-muted)">Conflicto geo</span></div>
+            <div class="legend-item"><div class="legend-dot" style="width:24px;height:3px;border-radius:1px;background:linear-gradient(90deg,#00c8ff,#7c4ddc);"></div><span style="color:var(--text-muted)">Ruta vehículo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Revision (existing) -->
   <div class="ik-panel" id="tab-revision">
     <div style="display:flex;gap:8px;align-items:flex-end;flex-shrink:0;flex-wrap:wrap;">
       <textarea class="rev-textarea" id="revInput" placeholder="Pega ISOs aqui (una por linea, separadas por coma o espacio)..."></textarea>
@@ -331,6 +433,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <div class="ik-empty"><div class="ik-empty-icon">&#128203;</div>Pega ISOs arriba para comenzar la revision</div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -343,11 +446,101 @@ var modalData = [];
 var modalFilters = {};
 var modalSortCol = null, modalSortDir = null;
 var cfp_col = null, cfp_all = [], cfp_pending = new Set(), cfp_btn_el = null, cfp_ctx = 'rev';
-
-// Store for ISO groups keyed by a generated ID so we never embed JSON in HTML
 var isoGroupStore = {};
 
+// GEO STATE
+var geoConflicts = [];
+var geoAnalysisDone = false;
+var geoView = { scale: 1, tx: 0, ty: 0, isDragging: false, lastX: 0, lastY: 0 };
+var geoCanvas, geoCtx, geoOffscreenBg = null;
+var geoHoverPoint = null;
+var geoSelectedConflict = null;
+var cLat = null, cLng = null, cParada = null;
+var GEO_ROUTE_COLORS = [
+  '#00c8ff','#7c4ddc','#00e676','#ff9800','#e91e63',
+  '#29b6f6','#ab47bc','#66bb6a','#ffa726','#ef5350',
+  '#26c6da','#9c27b0','#9ccc65','#ff7043','#8c9eff'
+];
+
 function gid(id) { return document.getElementById(id); }
+
+// ── RM COMMUNES DATA ──
+var RM_BOUNDS = { minLat: -34.3, maxLat: -32.65, minLng: -71.95, maxLng: -69.7 };
+
+var RM_COMUNAS = [
+  {k:'SANTIAGO',lat:-33.4569,lng:-70.6483,n:'Santiago'},
+  {k:'PROVIDENCIA',lat:-33.4329,lng:-70.6093,n:'Providencia'},
+  {k:'LAS CONDES',lat:-33.4093,lng:-70.5674,n:'Las Condes'},
+  {k:'VITACURA',lat:-33.3817,lng:-70.5785,n:'Vitacura'},
+  {k:'NUNOA',lat:-33.4569,lng:-70.5985,n:'Ñuñoa'},
+  {k:'LA FLORIDA',lat:-33.5232,lng:-70.5888,n:'La Florida'},
+  {k:'MAIPU',lat:-33.5116,lng:-70.7576,n:'Maipú'},
+  {k:'PUDAHUEL',lat:-33.4375,lng:-70.8206,n:'Pudahuel'},
+  {k:'CERRILLOS',lat:-33.4897,lng:-70.7186,n:'Cerrillos'},
+  {k:'QUILICURA',lat:-33.3592,lng:-70.7368,n:'Quilicura'},
+  {k:'HUECHURABA',lat:-33.3527,lng:-70.6668,n:'Huechuraba'},
+  {k:'RECOLETA',lat:-33.4068,lng:-70.6451,n:'Recoleta'},
+  {k:'INDEPENDENCIA',lat:-33.4209,lng:-70.6568,n:'Independencia'},
+  {k:'CONCHALI',lat:-33.3836,lng:-70.6639,n:'Conchalí'},
+  {k:'RENCA',lat:-33.4002,lng:-70.7247,n:'Renca'},
+  {k:'CERRO NAVIA',lat:-33.4235,lng:-70.7367,n:'Cerro Navia'},
+  {k:'LO PRADO',lat:-33.4365,lng:-70.7198,n:'Lo Prado'},
+  {k:'ESTACION CENTRAL',lat:-33.4573,lng:-70.6886,n:'Est. Central'},
+  {k:'QUINTA NORMAL',lat:-33.4386,lng:-70.7018,n:'Quinta Normal'},
+  {k:'LO ESPEJO',lat:-33.5125,lng:-70.6966,n:'Lo Espejo'},
+  {k:'PEDRO AGUIRRE CERDA',lat:-33.4936,lng:-70.6727,n:'P.A.Cerda'},
+  {k:'SAN MIGUEL',lat:-33.4948,lng:-70.6494,n:'San Miguel'},
+  {k:'LA CISTERNA',lat:-33.5278,lng:-70.6603,n:'La Cisterna'},
+  {k:'SAN RAMON',lat:-33.5405,lng:-70.6395,n:'San Ramón'},
+  {k:'LA PINTANA',lat:-33.5812,lng:-70.6320,n:'La Pintana'},
+  {k:'EL BOSQUE',lat:-33.5673,lng:-70.6687,n:'El Bosque'},
+  {k:'LA GRANJA',lat:-33.5367,lng:-70.6288,n:'La Granja'},
+  {k:'SAN JOAQUIN',lat:-33.4972,lng:-70.6316,n:'San Joaquín'},
+  {k:'MACUL',lat:-33.4930,lng:-70.5938,n:'Macul'},
+  {k:'PENALOLEN',lat:-33.4839,lng:-70.5459,n:'Peñalolén'},
+  {k:'LA REINA',lat:-33.4529,lng:-70.5422,n:'La Reina'},
+  {k:'PUENTE ALTO',lat:-33.6100,lng:-70.5757,n:'Puente Alto'},
+  {k:'SAN BERNARDO',lat:-33.5923,lng:-70.6998,n:'San Bernardo'},
+  {k:'BUIN',lat:-33.7321,lng:-70.7461,n:'Buín'},
+  {k:'PAINE',lat:-33.8151,lng:-70.7447,n:'Paine'},
+  {k:'TALAGANTE',lat:-33.6644,lng:-70.9264,n:'Talagante'},
+  {k:'PENAFLOR',lat:-33.6160,lng:-70.9069,n:'Peñaflor'},
+  {k:'MELIPILLA',lat:-33.6893,lng:-71.2133,n:'Melipilla'},
+  {k:'CALERA DE TANGO',lat:-33.6362,lng:-70.7879,n:'Cal.de Tango'},
+  {k:'LO BARNECHEA',lat:-33.3543,lng:-70.5172,n:'Lo Barnechea'},
+  {k:'COLINA',lat:-33.2018,lng:-70.6748,n:'Colina'},
+  {k:'LAMPA',lat:-33.2867,lng:-70.8791,n:'Lampa'},
+  {k:'TILTIL',lat:-33.0839,lng:-70.9333,n:'Tiltil'},
+  {k:'PIRQUE',lat:-33.6400,lng:-70.5700,n:'Pirque'},
+  {k:'EL MONTE',lat:-33.6929,lng:-71.0215,n:'El Monte'},
+  {k:'PADRE HURTADO',lat:-33.5600,lng:-70.8200,n:'Padre Hurtado'},
+  {k:'CURACAVI',lat:-33.3967,lng:-71.1433,n:'Curacaví'},
+  {k:'ALHUE',lat:-34.0333,lng:-71.1000,n:'Alhué'},
+  {k:'SAN PEDRO',lat:-33.8900,lng:-71.4600,n:'San Pedro'}
+];
+
+// Pre-generate commune colors (dark but vivid)
+var _communeColors = RM_COMUNAS.map(function(c,i){
+  var h = (i * 360 / RM_COMUNAS.length + 15) % 360;
+  return hslToRgb(h / 360, 0.65, 0.42);
+});
+
+function hslToRgb(h,s,l){
+  var r,g,b;
+  if(s===0){r=g=b=l;}
+  else{
+    var q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    var hue2rgb=function(p,q,t){
+      if(t<0)t+=1;if(t>1)t-=1;
+      if(t<1/6)return p+(q-p)*6*t;
+      if(t<1/2)return q;
+      if(t<2/3)return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
 
 // ── COORDS ──
 var COORDS_CL = {
@@ -371,7 +564,9 @@ var COORDS_CL = {
   'BUIN':[-33.7321,-70.7461],'PAINE':[-33.8151,-70.7447],'TALAGANTE':[-33.6644,-70.9264],
   'PENAFLOR':[-33.6160,-70.9069],'MELIPILLA':[-33.6893,-71.2133],'CALERA DE TANGO':[-33.6362,-70.7879],
   'LO BARNECHEA':[-33.3543,-70.5172],'COLINA':[-33.2018,-70.6748],'LAMPA':[-33.2867,-70.8791],
-  'TIL TIL':[-33.0839,-70.9333],'TILTIL':[-33.0839,-70.9333]
+  'TIL TIL':[-33.0839,-70.9333],'TILTIL':[-33.0839,-70.9333],
+  'PIRQUE':[-33.6400,-70.5700],'EL MONTE':[-33.6929,-71.0215],'PADRE HURTADO':[-33.5600,-70.8200],
+  'CURACAVI':[-33.3967,-71.1433],'ALHUE':[-34.0333,-71.1000]
 };
 
 function getCoords(nombre) {
@@ -391,6 +586,12 @@ function haversine(c1, c2) {
   var dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
   var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function normCom(s) {
+  return (s||'').trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9 ]/g,'').trim();
 }
 
 // ── NOTIFICATIONS ──
@@ -413,6 +614,12 @@ function aTab(id, btn) {
   document.querySelectorAll('.ik-panel').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.ik-tab').forEach(function(t){ t.classList.remove('active'); });
   gid(id).classList.add('active'); btn.classList.add('active');
+  if (id === 'tab-geo') {
+    setTimeout(function(){
+      initGeoCanvas();
+      if (geoOffscreenBg) drawGeoFrame();
+    }, 50);
+  }
 }
 
 // ── FILE HANDLING ──
@@ -444,22 +651,20 @@ function processFile(file) {
       if (!rows.length) { notif('Archivo vacio','err'); return; }
       var keys = Object.keys(rows[0]);
 
-      // Normalize: remove accents, lowercase
       function norm(s){ return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-
-      // Find column: try exact normalized match first, then partial
       function findCol() {
         var candidates = Array.prototype.slice.call(arguments);
-        // exact match
         var exact = keys.find(function(k){ return candidates.some(function(c){ return norm(k) === norm(c); }); });
         if (exact) return exact;
-        // partial match
         return keys.find(function(k){ return candidates.some(function(c){ return norm(k).indexOf(norm(c)) >= 0; }); });
       }
 
       var cTit = findCol('Título','Titulo','titulo','title','iso');
       var cVeh = findCol('Vehículo','Vehiculo','vehiculo','vehicle','veh');
       var cDir = findCol('Dirección','Direccion','direccion','dir','address');
+      cLat = findCol('Latitud','Lat','latitude','lat','y');
+      cLng = findCol('Longitud','Lng','Lon','longitude','lng','lon','x');
+      cParada = findCol('Parada','Stop','stop','orden','order','secuencia','seq','numero','num');
 
       if (!cTit) { notif('No se encontro columna Titulo. Columnas: ' + keys.slice(0,6).join(' | '), 'err'); return; }
       if (!cVeh) { notif('No se encontro columna Vehiculo. Columnas: ' + keys.slice(0,6).join(' | '), 'err'); return; }
@@ -470,33 +675,41 @@ function processFile(file) {
           var iso = (r[cTit]||'').trim().toUpperCase();
           return iso && iso !== 'INICIO' && iso !== 'FIN';
         })
-        .map(function(r){
+        .map(function(r) {
           var dir = (r[cDir]||'').trim();
           var parts = dir.split(',').map(function(s){ return s.trim(); });
           var n = parts.length;
-          // Last two parts: parts[n-2] = comuna, parts[n-1] = provincia/region
-          var comuna   = n >= 2 ? parts[n-2] : (parts[0] || 'Sin comuna');
+          var comuna = n >= 2 ? parts[n-2] : (parts[0] || 'Sin comuna');
           var provincia = n >= 1 ? parts[n-1] : '';
-          return { iso:(r[cTit]||'').trim(), veh:(r[cVeh]||'').trim(), dir:dir, comuna:comuna, provincia:provincia };
+
+          var lat = cLat ? parseFloat(r[cLat]) : NaN;
+          var lng = cLng ? parseFloat(r[cLng]) : NaN;
+          var parada = cParada ? (parseInt(r[cParada]) || 0) : 0;
+
+          return {
+            iso:(r[cTit]||'').trim(),
+            veh:(r[cVeh]||'').trim(),
+            dir:dir,
+            comuna:comuna,
+            provincia:provincia,
+            lat: isNaN(lat) ? null : lat,
+            lng: isNaN(lng) ? null : lng,
+            parada: parada
+          };
         });
+
+      var hasGeo = rawData.some(function(r){ return r.lat !== null && r.lng !== null; });
+
       renderMapa();
-      notif('OK: ' + rawData.length + ' ISOs cargadas');
+      setupGeoTab(hasGeo);
+      notif('OK: ' + rawData.length + ' ISOs cargadas' + (hasGeo ? ' · con georeferencia' : ''));
     } catch(err) { notif('Error al leer archivo: ' + err.message, 'err'); }
   };
   if (/\.xlsx?$/i.test(file.name)) reader.readAsArrayBuffer(file);
   else reader.readAsText(file, 'UTF-8');
 }
 
-// ── TOGGLE ALL VEHICLES ──
-function toggleAllVehicles() {
-  var blocks = document.querySelectorAll('.veh-block');
-  var anyOpen = Array.prototype.some.call(blocks, function(b){ return b.classList.contains('open'); });
-  blocks.forEach(function(b){ anyOpen ? b.classList.remove('open') : b.classList.add('open'); });
-  var btn = gid('btnToggleAll');
-  if (btn) btn.textContent = anyOpen ? '▼ Expandir todo' : '▲ Colapsar todo';
-}
-
-// ── RENDER MAPA ──
+// ── RENDER MAPA (TAB 1) ──
 function renderMapa() {
   if (!rawData.length) return;
   gid('uploadZone').style.display = 'none';
@@ -535,19 +748,14 @@ function renderMapa() {
     var soloUnaCount = Object.values(comunas).filter(function(arr){ return arr.length===1; }).length;
 
     var block = document.createElement('div');
-    block.className = 'veh-block';
+    block.className = 'veh-block open';
 
     var header = document.createElement('div');
     header.className = 'veh-header';
     var pillsHtml = '<span class="pill pill-blue">' + totalIsos + ' ISOs</span> <span class="pill pill-dim">' + Object.keys(comunas).length + ' comunas</span>';
     if (soloUnaCount) pillsHtml += ' <span class="pill pill-orange">! ' + soloUnaCount + ' solo 1</span>';
     header.innerHTML = '<div class="veh-left"><span style="font-size:18px">&#128667;</span><div class="veh-name">' + escH(veh) + '</div><div class="veh-pills">' + pillsHtml + '</div></div><div class="veh-chev">v</div>';
-    header.addEventListener('click', function(){
-      block.classList.toggle('open');
-      var anyOpen = Array.prototype.some.call(document.querySelectorAll('.veh-block'), function(b){ return b.classList.contains('open'); });
-      var btn = gid('btnToggleAll');
-      if (btn) btn.textContent = anyOpen ? '▲ Colapsar todo' : '▼ Expandir todo';
-    });
+    header.addEventListener('click', function(){ block.classList.toggle('open'); });
 
     var body = document.createElement('div');
     body.className = 'veh-body';
@@ -560,10 +768,7 @@ function renderMapa() {
     Object.entries(comunas).sort(function(a,b){ return b[1].length - a[1].length; }).forEach(function(ce){
       var comuna = ce[0], isos = ce[1];
       var isOne = isos.length === 1;
-
-      // Store ISO data safely, reference by key
       var storeKey = 'g_' + Math.random().toString(36).substr(2, 12);
-      // collect unique provincia for this comuna group
       var provSet = {};
       isos.forEach(function(r){ if(r.provincia) provSet[r.provincia]=1; });
       var provLabel = Object.keys(provSet).join(' / ') || '—';
@@ -578,21 +783,12 @@ function renderMapa() {
       var btnClass = 'ct-cnt-btn' + (isOne ? ' one' : '');
       tr.innerHTML = '<td class="ct-comunanm">' + escH(comuna) + '</td>' +
         '<td style="padding:8px 16px;font-size:11px;color:var(--text-dim);font-family:var(--mono)">' + escH(provLabel) + '</td>' +
-        '<td class="ct-cnt">' +
-          '<span class="' + btnClass + '" data-key="' + storeKey + '">' + isos.length + ' <span style="font-size:9px;opacity:.7">></span></span>' +
-        '</td>' +
-        '<td style="padding:6px 10px;text-align:center">' +
-          '<button class="btn-ghost btn-xs" data-key="' + storeKey + '">Ver</button>' +
-        '</td>';
+        '<td class="ct-cnt"><span class="' + btnClass + '" data-key="' + storeKey + '">' + isos.length + ' <span style="font-size:9px;opacity:.7">></span></span></td>' +
+        '<td style="padding:6px 10px;text-align:center"><button class="btn-ghost btn-xs" data-key="' + storeKey + '">Ver</button></td>';
 
-      // Attach click handlers after building DOM (no inline JS, no JSON in HTML)
       tbody.appendChild(tr);
-      tr.querySelector('.ct-cnt-btn').addEventListener('click', function(){
-        openGroupModal(this.getAttribute('data-key'));
-      });
-      tr.querySelector('.btn-ghost').addEventListener('click', function(){
-        openGroupModal(this.getAttribute('data-key'));
-      });
+      tr.querySelector('.ct-cnt-btn').addEventListener('click', function(){ openGroupModal(this.getAttribute('data-key')); });
+      tr.querySelector('.btn-ghost').addEventListener('click', function(){ openGroupModal(this.getAttribute('data-key')); });
     });
 
     table.appendChild(tbody);
@@ -601,6 +797,598 @@ function renderMapa() {
     block.appendChild(body);
     vscroll.appendChild(block);
   });
+}
+
+// ── SETUP GEO TAB ──
+function setupGeoTab(hasGeo) {
+  if (hasGeo) {
+    gid('geoNoData').style.display = 'none';
+    gid('geoContent').style.display = 'flex';
+    geoConflicts = [];
+    geoAnalysisDone = false;
+    gid('geoStatRow').style.display = 'none';
+    gid('badge-geo').textContent = '0';
+    gid('geoConflictList').innerHTML = '<div class="conflict-empty">Presiona "Realizar Análisis" para detectar conflictos</div>';
+    gid('geoLegend').style.display = 'none';
+    // Build voronoi background
+    buildVoronoiBg();
+  } else {
+    gid('geoNoData').style.display = 'flex';
+    gid('geoContent').style.display = 'none';
+  }
+}
+
+// ── GEO: Nearest RM commune from lat/lng ──
+function getNearestComuna(lat, lng) {
+  var minD = 1e9, best = null;
+  for (var i = 0; i < RM_COMUNAS.length; i++) {
+    var dlat = lat - RM_COMUNAS[i].lat;
+    var dlng = (lng - RM_COMUNAS[i].lng) * 0.834; // cos(33.5°)
+    var d = dlat*dlat + dlng*dlng;
+    if (d < minD) { minD = d; best = RM_COMUNAS[i].k; }
+  }
+  return best;
+}
+
+// ── GEO ANALYSIS ──
+function realizarAnalisisGeo() {
+  if (!rawData.length) { notif('Carga un archivo primero','err'); return; }
+  var ptsWithGeo = rawData.filter(function(r){ return r.lat !== null && r.lng !== null; });
+  if (!ptsWithGeo.length) { notif('No hay puntos con coordenadas en el archivo','err'); return; }
+
+  geoConflicts = [];
+
+  ptsWithGeo.forEach(function(r) {
+    var comunaNorm = normCom(r.comuna);
+    if (!comunaNorm) return;
+
+    var comunaCoord = getNearestComuna(r.lat, r.lng);
+    if (!comunaCoord) return;
+
+    // Also check with alias normalizations
+    var coordNorm = normCom(comunaCoord);
+
+    // Handle common equivalences
+    var aliases = { 'NUNA':'NUNOA', 'NUNO A':'NUNOA', 'TILTIL':'TIL TIL', 'TIL TIL':'TILTIL',
+                    'ESTACION CENTRAL':'ESTACION CENTRAL', 'ESTCENTRAL':'ESTACION CENTRAL' };
+    var cn = aliases[comunaNorm] || comunaNorm;
+    var cc = aliases[coordNorm] || coordNorm;
+
+    if (cn === cc) return;
+
+    // Confirm by checking distance from stated commune
+    var statedCoords = getCoords(r.comuna);
+    if (!statedCoords) return;
+    var dist = haversine([r.lat, r.lng], statedCoords);
+
+    if (dist > 2.5) { // more than 2.5km from stated commune centroid
+      geoConflicts.push({
+        iso: r.iso,
+        veh: r.veh,
+        dir: r.dir,
+        comunaDireccion: r.comuna,
+        comunaCoordenadas: RM_COMUNAS.find(function(x){ return x.k === comunaCoord; }) ? RM_COMUNAS.find(function(x){ return x.k === comunaCoord; }).n : comunaCoord,
+        comunaCoordKey: comunaCoord,
+        lat: r.lat,
+        lng: r.lng,
+        parada: r.parada,
+        distancia: dist.toFixed(1)
+      });
+    }
+  });
+
+  geoAnalysisDone = true;
+
+  // Update stats
+  var conflictVehs = new Set(geoConflicts.map(function(c){ return c.veh; })).size;
+  gid('gst-conflictos').textContent = geoConflicts.length;
+  gid('gst-vehs').textContent = conflictVehs;
+  gid('gst-puntos').textContent = ptsWithGeo.length;
+  gid('geoStatRow').style.display = 'flex';
+  gid('badge-geo').textContent = geoConflicts.length;
+  gid('geoLegend').style.display = 'flex';
+
+  renderConflictList();
+  initGeoCanvas();
+  drawGeoFrame();
+
+  if (geoConflicts.length === 0) {
+    notif('Sin conflictos detectados — todas las comunas coinciden con las coordenadas');
+  } else {
+    notif(geoConflicts.length + ' conflictos de georreferenciación detectados', geoConflicts.length > 0 ? 'err' : 'ok');
+  }
+}
+
+function renderConflictList() {
+  var list = gid('geoConflictList');
+  if (!geoConflicts.length) {
+    list.innerHTML = '<div class="conflict-empty" style="color:var(--green)">✓ Sin conflictos — todas las comunas coinciden con las coordenadas</div>';
+    gid('geoSidebarHeader').textContent = 'Sin conflictos';
+    return;
+  }
+  gid('geoSidebarHeader').textContent = geoConflicts.length + ' conflicto' + (geoConflicts.length!==1?'s':'') + ' detectado' + (geoConflicts.length!==1?'s':'');
+
+  var html = '';
+  geoConflicts.forEach(function(c, i) {
+    html += '<div class="conflict-card" data-idx="' + i + '">' +
+      '<div class="conf-iso">' + escH(c.iso) + '</div>' +
+      '<div class="conf-veh">&#128667; ' + escH(c.veh) + '  ·  ' + c.distancia + ' km del centroide</div>' +
+      '<div class="conf-row">' +
+        '<span class="conf-badge conf-badge-dir">' + escH(c.comunaDireccion) + '</span>' +
+        '<span class="conf-arrow">→</span>' +
+        '<span class="conf-badge conf-badge-coord">' + escH(c.comunaCoordenadas) + '</span>' +
+      '</div>' +
+      '<div class="conf-dist" style="margin-top:4px;font-size:9px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(c.dir) + '</div>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+
+  list.querySelectorAll('.conflict-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      list.querySelectorAll('.conflict-card').forEach(function(c){ c.classList.remove('selected'); });
+      this.classList.add('selected');
+      geoSelectedConflict = geoConflicts[idx];
+      centerMapOn(geoConflicts[idx].lat, geoConflicts[idx].lng);
+    });
+  });
+}
+
+// ── GEO CANVAS ──
+function initGeoCanvas() {
+  var wrap = gid('geoCanvasWrap');
+  if (!wrap) return;
+  geoCanvas = gid('geoCanvas');
+  geoCtx = geoCanvas.getContext('2d');
+  var rect = wrap.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) {
+    geoCanvas.width = rect.width;
+    geoCanvas.height = rect.height;
+  }
+  // Mouse events
+  geoCanvas.onmousedown = geoMouseDown;
+  geoCanvas.onmousemove = geoMouseMove;
+  geoCanvas.onmouseup = geoMouseUp;
+  geoCanvas.onmouseleave = geoMouseLeave;
+  geoCanvas.onwheel = geoWheel;
+}
+
+function buildVoronoiBg() {
+  var VW = 350, VH = 280;
+  var cells = new Uint8Array(VW * VH);
+  var N = RM_COMUNAS.length;
+  var latRange = RM_BOUNDS.maxLat - RM_BOUNDS.minLat;
+  var lngRange = RM_BOUNDS.maxLng - RM_BOUNDS.minLng;
+
+  for (var y = 0; y < VH; y++) {
+    var lat = RM_BOUNDS.maxLat - (y / VH) * latRange;
+    for (var x = 0; x < VW; x++) {
+      var lng = RM_BOUNDS.minLng + (x / VW) * lngRange;
+      var minD = 1e9, best = 0;
+      for (var i = 0; i < N; i++) {
+        var dlat = lat - RM_COMUNAS[i].lat;
+        var dlng = (lng - RM_COMUNAS[i].lng) * 0.834;
+        var d = dlat*dlat + dlng*dlng;
+        if (d < minD) { minD = d; best = i; }
+      }
+      cells[y * VW + x] = best;
+    }
+  }
+
+  // Build ImageData
+  var offscreen = document.createElement('canvas');
+  offscreen.width = VW; offscreen.height = VH;
+  var octx = offscreen.getContext('2d');
+  var imgData = octx.createImageData(VW, VH);
+  var data = imgData.data;
+
+  for (var i = 0; i < VW * VH; i++) {
+    var ci = cells[i];
+    var col = _communeColors[ci];
+    var y2 = (i / VW) | 0;
+    var x2 = i % VW;
+    var isBorder = false;
+    if (x2 > 0 && cells[i-1] !== ci) isBorder = true;
+    else if (x2 < VW-1 && cells[i+1] !== ci) isBorder = true;
+    else if (y2 > 0 && cells[i-VW] !== ci) isBorder = true;
+    else if (y2 < VH-1 && cells[i+VW] !== ci) isBorder = true;
+
+    if (isBorder) {
+      data[i*4]   = Math.min(255, col[0] + 100);
+      data[i*4+1] = Math.min(255, col[1] + 100);
+      data[i*4+2] = Math.min(255, col[2] + 140);
+      data[i*4+3] = 220;
+    } else {
+      data[i*4]   = col[0];
+      data[i*4+1] = col[1];
+      data[i*4+2] = col[2];
+      data[i*4+3] = 22;
+    }
+  }
+  octx.putImageData(imgData, 0, 0);
+
+  // Add blur for glow effect on border lines
+  var blurred = document.createElement('canvas');
+  blurred.width = VW; blurred.height = VH;
+  var bctx = blurred.getContext('2d');
+  bctx.filter = 'blur(0.7px)';
+  bctx.drawImage(offscreen, 0, 0);
+  bctx.filter = 'none';
+
+  geoOffscreenBg = { canvas: blurred, VW: VW, VH: VH, cells: cells };
+}
+
+// ── GEO PROJECTION ──
+function geoProject(lat, lng) {
+  var W = geoCanvas.width, H = geoCanvas.height;
+  var latRange = RM_BOUNDS.maxLat - RM_BOUNDS.minLat;
+  var lngRange = RM_BOUNDS.maxLng - RM_BOUNDS.minLng;
+  var x = (lng - RM_BOUNDS.minLng) / lngRange * W;
+  var y = (1 - (lat - RM_BOUNDS.minLat) / latRange) * H;
+  return { x: x, y: y };
+}
+
+function applyViewXform(ctx) {
+  var W = geoCanvas.width, H = geoCanvas.height;
+  ctx.translate(W/2 + geoView.tx, H/2 + geoView.ty);
+  ctx.scale(geoView.scale, geoView.scale);
+  ctx.translate(-W/2, -H/2);
+}
+
+// ── GEO DRAWING ──
+function drawGeoFrame() {
+  if (!geoCanvas || !geoCtx) return;
+  var ctx = geoCtx;
+  var W = geoCanvas.width, H = geoCanvas.height;
+  var sc = geoView.scale;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#060a10';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  applyViewXform(ctx);
+
+  // Draw voronoi background
+  if (geoOffscreenBg) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(geoOffscreenBg.canvas, 0, 0, W, H);
+  }
+
+  // Draw commune labels
+  var labelSz = Math.max(6.5, Math.min(12, 9 * sc)) / sc;
+  ctx.font = '600 ' + labelSz + 'px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (var i = 0; i < RM_COMUNAS.length; i++) {
+    var c = RM_COMUNAS[i];
+    var pt = geoProject(c.lat, c.lng);
+    var col = _communeColors[i];
+    var colStr = 'rgb(' + col[0] + ',' + col[1] + ',' + col[2] + ')';
+
+    ctx.save();
+    ctx.shadowBlur = 10 / sc;
+    ctx.shadowColor = colStr;
+    ctx.fillStyle = colStr;
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(c.n, pt.x, pt.y);
+    // Draw bright white core
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(230,237,243,0.6)';
+    ctx.globalAlpha = 1;
+    ctx.fillText(c.n, pt.x, pt.y);
+    ctx.restore();
+  }
+
+  // Build vehicle routes if we have geo data
+  var vehPoints = {};
+  var conflictISOSet = new Set(geoConflicts.map(function(c){ return c.iso; }));
+  var conflictVehSet = new Set(geoConflicts.map(function(c){ return c.veh; }));
+
+  rawData.forEach(function(r) {
+    if (r.lat === null || r.lng === null) return;
+    if (geoAnalysisDone && !conflictVehSet.has(r.veh)) return; // only show conflict vehicles after analysis
+    if (!vehPoints[r.veh]) vehPoints[r.veh] = [];
+    vehPoints[r.veh].push(r);
+  });
+
+  var vehKeys = Object.keys(vehPoints).sort();
+  var lineW = Math.max(0.8, 1.8 / sc);
+  var ptRadius = Math.max(3, 5 / sc);
+  var conflictRadius = Math.max(4, 7 / sc);
+
+  // Draw routes (lines first, then points on top)
+  vehKeys.forEach(function(veh, vi) {
+    var stops = vehPoints[veh].slice();
+    if (stops[0] && stops[0].parada !== 0) {
+      stops.sort(function(a,b){ return a.parada - b.parada; });
+    }
+    if (stops.length < 2) return;
+
+    var color = GEO_ROUTE_COLORS[vi % GEO_ROUTE_COLORS.length];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineW;
+    ctx.globalAlpha = 0.55;
+    ctx.shadowBlur = 3 / sc;
+    ctx.shadowColor = color;
+    ctx.beginPath();
+    var first = geoProject(stops[0].lat, stops[0].lng);
+    ctx.moveTo(first.x, first.y);
+    for (var i = 1; i < stops.length; i++) {
+      var p = geoProject(stops[i].lat, stops[i].lng);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // Draw points
+  // Normal points first
+  rawData.forEach(function(r) {
+    if (r.lat === null || r.lng === null) return;
+    if (geoAnalysisDone && !conflictVehSet.has(r.veh)) return;
+    if (conflictISOSet.has(r.iso)) return; // draw conflicts later
+    var pt = geoProject(r.lat, r.lng);
+    ctx.save();
+    ctx.fillStyle = '#3ddc84';
+    ctx.globalAlpha = 0.65;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, ptRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Conflict points on top with glow
+  geoConflicts.forEach(function(c) {
+    var pt = geoProject(c.lat, c.lng);
+    var isSelected = geoSelectedConflict && geoSelectedConflict.iso === c.iso;
+
+    ctx.save();
+    ctx.shadowBlur = (isSelected ? 20 : 12) / sc;
+    ctx.shadowColor = '#ff4444';
+    ctx.fillStyle = '#ff4444';
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, isSelected ? conflictRadius * 1.5 : conflictRadius, 0, Math.PI * 2);
+    ctx.fill();
+    // White ring
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+    ctx.lineWidth = 1.5 / sc;
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // Hover point highlight
+  if (geoHoverPoint) {
+    var hpt = geoProject(geoHoverPoint.lat, geoHoverPoint.lng);
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2 / sc;
+    ctx.globalAlpha = 0.9;
+    ctx.shadowBlur = 8 / sc;
+    ctx.shadowColor = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(hpt.x, hpt.y, conflictRadius * 1.8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore(); // end view transform
+
+  // Draw tooltip (no transform)
+  if (geoHoverPoint) drawGeoTooltip();
+}
+
+function drawGeoTooltip() {
+  var ctx = geoCtx;
+  var pt = screenPoint(geoHoverPoint.lat, geoHoverPoint.lng);
+  var c = geoHoverPoint;
+  var isConflict = c._conflict;
+
+  var lines = [
+    c.iso,
+    c.veh,
+    c.dir.length > 48 ? c.dir.substr(0,48)+'…' : c.dir,
+  ];
+  if (isConflict) {
+    lines.push('Dir: ' + c.comunaDireccion);
+    lines.push('Coord: ' + c.comunaCoordenadas + '  (' + c.distancia + ' km)');
+  } else {
+    lines.push(c.comuna);
+  }
+
+  var pw = 230, ph = lines.length * 16 + 16;
+  var tx = pt.sx + 14, ty = pt.sy - ph / 2;
+  if (tx + pw > geoCanvas.width) tx = pt.sx - pw - 14;
+  if (ty < 6) ty = 6;
+  if (ty + ph > geoCanvas.height - 6) ty = geoCanvas.height - ph - 6;
+
+  ctx.save();
+  ctx.shadowBlur = 16;
+  ctx.shadowColor = isConflict ? '#ff4444' : '#00c8ff';
+  ctx.fillStyle = 'rgba(13,17,23,0.95)';
+  roundRect(ctx, tx, ty, pw, ph, 6);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = isConflict ? 'rgba(248,81,73,0.6)' : 'rgba(0,200,255,0.4)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx, ty, pw, ph, 6);
+  ctx.stroke();
+
+  ctx.font = '700 11px -apple-system,sans-serif';
+  ctx.fillStyle = isConflict ? '#ff7b72' : '#7bb8ff';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(lines[0], tx + 10, ty + 8);
+
+  ctx.font = '10px -apple-system,sans-serif';
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText(lines[1], tx + 10, ty + 22);
+  ctx.fillText(lines[2], tx + 10, ty + 34);
+  if (isConflict) {
+    ctx.fillStyle = '#7bb8ff';
+    ctx.fillText(lines[3], tx + 10, ty + 48);
+    ctx.fillStyle = '#ff7b72';
+    ctx.fillText(lines[4], tx + 10, ty + 60);
+  } else if (lines[3]) {
+    ctx.fillStyle = '#e6edf3';
+    ctx.fillText(lines[3], tx + 10, ty + 48);
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// Screen coordinates of a lat/lng under current view
+function screenPoint(lat, lng) {
+  var pp = geoProject(lat, lng);
+  var W = geoCanvas.width, H = geoCanvas.height;
+  var sx = (pp.x - W/2) * geoView.scale + W/2 + geoView.tx;
+  var sy = (pp.y - H/2) * geoView.scale + H/2 + geoView.ty;
+  return { sx: sx, sy: sy };
+}
+
+// World coordinates from screen coordinates
+function worldPoint(sx, sy) {
+  var W = geoCanvas.width, H = geoCanvas.height;
+  var wx = (sx - W/2 - geoView.tx) / geoView.scale + W/2;
+  var wy = (sy - H/2 - geoView.ty) / geoView.scale + H/2;
+  return { wx: wx, wy: wy };
+}
+
+// World (canvas) to lat/lng
+function canvasToLatLng(wx, wy) {
+  var W = geoCanvas.width, H = geoCanvas.height;
+  var latRange = RM_BOUNDS.maxLat - RM_BOUNDS.minLat;
+  var lngRange = RM_BOUNDS.maxLng - RM_BOUNDS.minLng;
+  var lat = RM_BOUNDS.maxLat - (wy / H) * latRange;
+  var lng = RM_BOUNDS.minLng + (wx / W) * lngRange;
+  return { lat: lat, lng: lng };
+}
+
+// ── GEO INTERACTIONS ──
+function geoMouseDown(e) {
+  geoView.isDragging = true;
+  geoView.lastX = e.clientX;
+  geoView.lastY = e.clientY;
+  geoCanvas.classList.add('dragging');
+}
+
+function geoMouseMove(e) {
+  if (geoView.isDragging) {
+    geoView.tx += e.clientX - geoView.lastX;
+    geoView.ty += e.clientY - geoView.lastY;
+    geoView.lastX = e.clientX;
+    geoView.lastY = e.clientY;
+    geoHoverPoint = null;
+    drawGeoFrame();
+    return;
+  }
+
+  // Hit test for hover
+  var rect = geoCanvas.getBoundingClientRect();
+  var sx = e.clientX - rect.left;
+  var sy = e.clientY - rect.top;
+  var wp = worldPoint(sx, sy);
+  var ll = canvasToLatLng(wp.wx, wp.wy);
+  var hitRadius = 12 / geoView.scale;
+
+  var found = null;
+  var conflictISOSet = new Set(geoConflicts.map(function(c){ return c.iso; }));
+
+  // Check conflict points first (they're on top)
+  for (var i = 0; i < geoConflicts.length; i++) {
+    var c = geoConflicts[i];
+    var dlat = c.lat - ll.lat, dlng = (c.lng - ll.lng) * 0.834;
+    var latRange = RM_BOUNDS.maxLat - RM_BOUNDS.minLat;
+    var dScreen = Math.sqrt(dlat*dlat + dlng*dlng) * (geoCanvas.height / latRange) * geoView.scale;
+    if (dScreen < hitRadius * geoView.scale) {
+      found = Object.assign({}, c, {_conflict: true});
+      break;
+    }
+  }
+
+  if (!found && !geoAnalysisDone) {
+    // Check all points
+    for (var i = 0; i < rawData.length; i++) {
+      var r = rawData[i];
+      if (r.lat === null || r.lng === null) continue;
+      var dlat = r.lat - ll.lat, dlng = (r.lng - ll.lng) * 0.834;
+      var latRange = RM_BOUNDS.maxLat - RM_BOUNDS.minLat;
+      var dScreen = Math.sqrt(dlat*dlat + dlng*dlng) * (geoCanvas.height / latRange) * geoView.scale;
+      if (dScreen < hitRadius * geoView.scale) {
+        found = { iso: r.iso, veh: r.veh, dir: r.dir, lat: r.lat, lng: r.lng, comuna: r.comuna, _conflict: false };
+        break;
+      }
+    }
+  }
+
+  if (found !== geoHoverPoint) {
+    geoHoverPoint = found;
+    geoCanvas.style.cursor = found ? 'pointer' : (geoView.isDragging ? 'grabbing' : 'grab');
+    drawGeoFrame();
+  }
+}
+
+function geoMouseUp(e) {
+  geoView.isDragging = false;
+  geoCanvas.classList.remove('dragging');
+}
+function geoMouseLeave() {
+  geoView.isDragging = false;
+  geoCanvas.classList.remove('dragging');
+  if (geoHoverPoint) { geoHoverPoint = null; drawGeoFrame(); }
+}
+
+function geoWheel(e) {
+  e.preventDefault();
+  var factor = e.deltaY < 0 ? 1.12 : 0.9;
+  var rect = geoCanvas.getBoundingClientRect();
+  var sx = e.clientX - rect.left;
+  var sy = e.clientY - rect.top;
+  var W = geoCanvas.width, H = geoCanvas.height;
+  // Zoom around cursor
+  geoView.tx = (geoView.tx - (sx - W/2)) * factor + (sx - W/2);
+  geoView.ty = (geoView.ty - (sy - H/2)) * factor + (sy - H/2);
+  geoView.scale = Math.min(Math.max(geoView.scale * factor, 0.5), 20);
+  drawGeoFrame();
+}
+
+function geoZoomIn() {
+  var W = geoCanvas.width, H = geoCanvas.height;
+  geoView.scale = Math.min(geoView.scale * 1.3, 20);
+  drawGeoFrame();
+}
+function geoZoomOut() {
+  geoView.scale = Math.max(geoView.scale / 1.3, 0.5);
+  drawGeoFrame();
+}
+function geoResetView() {
+  geoView.scale = 1; geoView.tx = 0; geoView.ty = 0;
+  drawGeoFrame();
+}
+
+function centerMapOn(lat, lng) {
+  if (!geoCanvas) return;
+  var pt = geoProject(lat, lng);
+  var W = geoCanvas.width, H = geoCanvas.height;
+  geoView.tx = W/2 - pt.x * geoView.scale;
+  geoView.ty = H/2 - pt.y * geoView.scale;
+  geoView.scale = Math.max(geoView.scale, 3);
+  drawGeoFrame();
 }
 
 // ── OPEN GROUP MODAL ──
@@ -719,54 +1507,121 @@ function copiarTablaModal() {
   tryCopyRich(html, tsv, 'Tabla copiada');
 }
 
-// ── ANOMALY DETECTION ──
-// Approach: for each vehicle, find the MAIN CLUSTER of comunas (the densely connected group)
-// using single-linkage clustering with a distance threshold.
-// Any comuna that cannot join the main cluster = anomaly.
-//
-// Adjacency threshold: two comunas are "neighbors" if they are within MAX_NEIGHBOR_KM of each other.
-// A comuna belongs to the main cluster if it is within MAX_CLUSTER_KM of at least one cluster member.
-// The main cluster = the largest connected component.
+// ── CFP ──
+var cfp_source = 'rev';
+function openCfp(col, btnEl, ctx) {
+  cfp_col = col; cfp_btn_el = btnEl; cfp_ctx = ctx;
+  var allData = ctx === 'modal' ? modalData : revData;
+  var activeFilters = ctx === 'modal' ? modalFilters : revFilters;
+  cfp_all = [...new Set(allData.map(function(r){ return r[col]!=null?r[col]:''; }))].sort(function(a,b){
+    return a.toString().localeCompare(b.toString(),'es');
+  });
+  var existingFilter = activeFilters[col];
+  cfp_pending = existingFilter ? new Set(existingFilter) : new Set(cfp_all);
+  renderCfpList(cfp_all);
+  var rect = btnEl.getBoundingClientRect();
+  var cfpEl = gid('cfp');
+  cfpEl.style.top = (rect.bottom + 4) + 'px';
+  cfpEl.style.left = Math.min(rect.left, window.innerWidth - 250) + 'px';
+  gid('cfp-title').textContent = col.toUpperCase();
+  gid('cfp-search').value = '';
+  cfpEl.classList.add('open');
+}
 
-var MAX_NEIGHBOR_KM = 10;   // comunas within 25km are considered adjacent/neighbor
-var MAX_CLUSTER_KM  = 10;   // max gap to still belong to the same cluster
+function renderCfpList(vals) {
+  var list = gid('cfp-list');
+  list.innerHTML = vals.map(function(v){
+    var checked = cfp_pending.has(v) ? 'checked' : '';
+    var blank = v==='' ? ' blank' : '';
+    var lbl = v==='' ? '(Vacio)' : escH(v);
+    var id = 'cfpi_' + Math.random().toString(36).substr(2,8);
+    return '<div class="cfp-item' + blank + '"><input type="checkbox" id="' + id + '" ' + checked + ' data-val="' + escH(v) + '"><label for="' + id + '">' + lbl + '</label></div>';
+  }).join('');
+  list.querySelectorAll('input[type="checkbox"]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var v = this.getAttribute('data-val');
+      if (this.checked) cfp_pending.add(v); else cfp_pending.delete(v);
+    });
+  });
+}
+
+function cfpSearch(q) {
+  var filtered = cfp_all.filter(function(v){ return v.toString().toLowerCase().includes(q.toLowerCase()); });
+  renderCfpList(filtered);
+}
+
+function cfpSort(dir) {
+  if (!cfp_col) return;
+  var activeData = cfp_ctx === 'modal' ? modalData : revData;
+  if (!dir) {
+    if (cfp_ctx === 'modal') { modalSortCol = null; modalSortDir = null; renderModalTable(); }
+    else { revSortCol = null; revSortDir = null; renderRevGrid(); }
+  } else {
+    if (cfp_ctx === 'modal') { modalSortCol = cfp_col; modalSortDir = dir; renderModalTable(); }
+    else { revSortCol = cfp_col; revSortDir = dir; renderRevGrid(); }
+  }
+  cfpClose();
+}
+
+function cfpSelAll(v) {
+  if (v) cfp_all.forEach(function(x){ cfp_pending.add(x); });
+  else cfp_pending.clear();
+  renderCfpList(cfp_all);
+}
+
+function cfpApply() {
+  if (!cfp_col) return;
+  if (cfp_ctx === 'modal') {
+    if (cfp_pending.size === cfp_all.length) delete modalFilters[cfp_col];
+    else modalFilters[cfp_col] = new Set(cfp_pending);
+    renderModalTable();
+  } else {
+    if (cfp_pending.size === cfp_all.length) delete revFilters[cfp_col];
+    else revFilters[cfp_col] = new Set(cfp_pending);
+    renderRevGrid();
+  }
+  cfpClose();
+}
+
+function cfpClose() {
+  gid('cfp').classList.remove('open');
+  cfp_col = null; cfp_btn_el = null;
+}
+
+document.addEventListener('mousedown', function(e){
+  if (!gid('cfp').classList.contains('open')) return;
+  if (!gid('cfp').contains(e.target) && e.target !== cfp_btn_el) cfpClose();
+});
+
+// ── ANOMALY DETECTION ──
+var MAX_NEIGHBOR_KM = 10;
+var MAX_CLUSTER_KM  = 10;
 
 function buildClusters(nodes) {
-  // nodes = [{name, coords, isos}]
-  // Returns array of clusters (each cluster = array of node indices), sorted largest first
   var n = nodes.length;
   var visited = new Array(n).fill(false);
   var clusters = [];
-
   for (var i = 0; i < n; i++) {
     if (visited[i]) continue;
-    // BFS
-    var cluster = [];
-    var queue = [i];
+    var cluster = [], queue = [i];
     visited[i] = true;
     while (queue.length) {
       var cur = queue.shift();
       cluster.push(cur);
       for (var j = 0; j < n; j++) {
-        if (!visited[j]) {
-          var d = haversine(nodes[cur].coords, nodes[j].coords);
-          if (d <= MAX_CLUSTER_KM) {
-            visited[j] = true;
-            queue.push(j);
-          }
+        if (!visited[j] && haversine(nodes[cur].coords, nodes[j].coords) <= MAX_CLUSTER_KM) {
+          visited[j] = true; queue.push(j);
         }
       }
     }
     clusters.push(cluster);
   }
-  // Sort: largest cluster first
   clusters.sort(function(a,b){ return b.length - a.length; });
   return clusters;
 }
 
 function analizarAnomalias() {
   if (!rawData.length) { notif('Carga un archivo primero','err'); return; }
-
   var vehMap = {};
   rawData.forEach(function(r){
     var v = r.veh || 'Sin vehiculo', c = r.comuna || 'Sin comuna';
@@ -774,69 +1629,34 @@ function analizarAnomalias() {
     if (!vehMap[v][c]) vehMap[v][c] = [];
     vehMap[v][c].push(r);
   });
-
-  var anomalies = [];   // {veh, comuna, isos, distToCluster, nearestInCluster, clusterComunas}
-  var skippedVehs = []; // vehicles with too few mapped comunas to analyze
-
+  var anomalies = [], skippedVehs = [];
   Object.entries(vehMap).forEach(function(entry){
     var veh = entry[0], comunas = entry[1];
     var comunaList = Object.keys(comunas);
     if (comunaList.length < 2) return;
-
-    // Map to coords — only comunas we know
-    var nodes = comunaList.map(function(c){
-      return { name:c, coords:getCoords(c), isos:comunas[c] };
-    }).filter(function(x){ return !!x.coords; });
-
+    var nodes = comunaList.map(function(c){ return { name:c, coords:getCoords(c), isos:comunas[c] }; })
+      .filter(function(x){ return !!x.coords; });
     var unknownComunas = comunaList.filter(function(c){ return !getCoords(c); });
-
-    if (nodes.length < 2) {
-      if (unknownComunas.length) skippedVehs.push({veh:veh, unknown:unknownComunas});
-      return;
-    }
-
-    // Build clusters using connectivity
+    if (nodes.length < 2) { if (unknownComunas.length) skippedVehs.push({veh:veh, unknown:unknownComunas}); return; }
     var clusters = buildClusters(nodes);
-    var mainCluster = clusters[0]; // largest group = "real" route zone
-    var outlierClusters = clusters.slice(1); // everything else = potential anomalies
-
-    // Centroid of main cluster
-    var clat = 0, clon = 0;
-    mainCluster.forEach(function(i){ clat += nodes[i].coords[0]; clon += nodes[i].coords[1]; });
-    clat /= mainCluster.length; clon /= mainCluster.length;
-
+    var mainCluster = clusters[0], outlierClusters = clusters.slice(1);
     var clusterNames = mainCluster.map(function(i){ return nodes[i].name; });
-
-    // Each outlier cluster node = anomaly
-    // Find its nearest neighbor IN the main cluster to show the distance gap
     outlierClusters.forEach(function(cluster){
       cluster.forEach(function(idx){
         var node = nodes[idx];
-        var minDist = Infinity;
-        var nearestName = '';
+        var minDist = Infinity, nearestName = '';
         mainCluster.forEach(function(ci){
           var d = haversine(node.coords, nodes[ci].coords);
           if (d < minDist) { minDist = d; nearestName = nodes[ci].name; }
         });
-        anomalies.push({
-          veh: veh,
-          comuna: node.name,
-          isos: node.isos,
-          distToCluster: Math.round(minDist),
-          nearestInCluster: nearestName,
-          clusterComunas: clusterNames,
-          clusterSize: mainCluster.length
-        });
+        anomalies.push({ veh:veh, comuna:node.name, isos:node.isos, distToCluster:Math.round(minDist), nearestInCluster:nearestName, clusterComunas:clusterNames, clusterSize:mainCluster.length });
       });
     });
-
     if (unknownComunas.length) skippedVehs.push({veh:veh, unknown:unknownComunas});
   });
 
-  // ── Render ──
   gid('anomalySubtitle').textContent = anomalies.length + ' comunas aisladas detectadas en ' +
     Object.keys(anomalies.reduce(function(acc,a){acc[a.veh]=1;return acc;},{})).length + ' vehiculo(s)';
-
   var body = gid('anomalyBody');
 
   if (!anomalies.length) {
@@ -848,14 +1668,9 @@ function analizarAnomalias() {
       'No se encontraron comunas aisladas del grupo principal de cada vehiculo (umbral: ' + MAX_CLUSTER_KM + ' km).' + skipNote +
       '</div></div>';
   } else {
-    // Group by vehicle
     var byVeh = {};
     anomalies.forEach(function(a){ if(!byVeh[a.veh]) byVeh[a.veh]=[]; byVeh[a.veh].push(a); });
-
-    var html = '';
-
-    // Settings bar
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;">' +
+    var html = '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;">' +
       '<span style="font-size:10px;color:var(--text-dim)">Umbral de adyacencia:</span>' +
       '<span style="font-size:11px;font-weight:700;color:var(--orange);font-family:var(--mono)">' + MAX_CLUSTER_KM + ' km</span>' +
       '<span style="font-size:10px;color:var(--text-dim);margin-left:8px">Una comuna es anomala si su vecina mas cercana en la ruta esta a mas de ' + MAX_CLUSTER_KM + ' km.</span>' +
@@ -863,166 +1678,52 @@ function analizarAnomalias() {
 
     Object.entries(byVeh).forEach(function(be){
       var vehName = be[0], items = be[1];
-      items.sort(function(a,b){ return b.distToCluster - a.distToCluster; });
-
-      html += '<div class="anomaly-veh-section">';
-      html += '<div class="anomaly-veh-name">&#128667; ' + escH(vehName) +
-        ' <span class="pill pill-red">' + items.length + ' comuna' + (items.length!==1?'s':'') + ' aislada' + (items.length!==1?'s':'') + '</span>' +
-        '<span class="pill pill-dim">Cluster principal: ' + escH(items[0].clusterComunas.slice(0,4).join(', ')) + (items[0].clusterComunas.length>4?' +' + (items[0].clusterComunas.length-4):'') + '</span>' +
-        '</div>';
-
-      items.forEach(function(item){
-        var chips = item.isos.map(function(r){
-          return '<button class="anomaly-iso-chip" data-iso="' + escH(r.iso) + '">' + escH(r.iso) + '</button>';
+      var totalIsoAnomaly = items.reduce(function(s,a){ return s+a.isos.length; }, 0);
+      html += '<div class="anomaly-veh-section"><div class="anomaly-veh-name"><span style="font-size:16px">&#128667;</span>' +
+        escH(vehName) + '<span class="pill pill-red">' + items.length + ' anomala' + (items.length>1?'s':'') + '</span>' +
+        '<span class="pill pill-orange">' + totalIsoAnomaly + ' ISOs</span></div>';
+      items.forEach(function(a){
+        var isoChips = a.isos.map(function(r){
+          return '<button class="anomaly-iso-chip" onclick="copiarTextoFlash(\'' + escH(r.iso) + '\',\'ISO copiada\')" title="Copiar ISO">' + escH(r.iso) + '</button>';
         }).join('');
-
-        var sevColor = item.distToCluster > 15 ? '#ff4444' : item.distToCluster > 10 ? '#ff7b72' : '#f0883e';
-        var sevLabel = item.distToCluster > 15 ? 'MUY LEJOS' : item.distToCluster > 10 ? 'LEJOS' : 'SEPARADA';
-
-        html += '<div class="anomaly-item">' +
-          '<div class="anomaly-item-icon">&#128205;</div>' +
-          '<div class="anomaly-item-body">' +
-            '<div class="anomaly-item-comuna">' + escH(item.comuna) + '</div>' +
-            '<div class="anomaly-item-reason">' +
-              'Mas cercana al cluster: <strong style="color:var(--text)">' + escH(item.nearestInCluster) + '</strong> &nbsp;|&nbsp; ' +
-              'Gap: <strong style="color:' + sevColor + '">' + item.distToCluster + ' km</strong> &nbsp;|&nbsp; ' +
-              item.isos.length + ' ISO' + (item.isos.length!==1?'s':'') +
-            '</div>' +
-            '<div class="anomaly-item-isos">' + chips + '</div>' +
-          '</div>' +
-          '<div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">' +
-            '<div style="font-size:20px;font-weight:800;color:' + sevColor + ';font-family:var(--mono)">' + item.distToCluster + 'km</div>' +
-            '<div style="font-size:8px;font-weight:700;background:' + sevColor + '22;color:' + sevColor + ';border:1px solid ' + sevColor + '44;border-radius:20px;padding:1px 7px">' + sevLabel + '</div>' +
-          '</div>' +
-        '</div>';
+        html += '<div class="anomaly-item"><div class="anomaly-item-icon">&#128205;</div>' +
+          '<div class="anomaly-item-body"><div class="anomaly-item-comuna">' + escH(a.comuna) + '</div>' +
+          '<div class="anomaly-item-reason">Distancia al cluster principal: <strong>' + a.distToCluster + ' km</strong> · Vecina mas cercana: <strong>' + escH(a.nearestInCluster) + '</strong>' +
+          '<br>Ruta principal: ' + a.clusterComunas.slice(0,6).map(escH).join(' · ') + (a.clusterComunas.length>6?' +' + (a.clusterComunas.length-6) + ' mas':'') + '</div>' +
+          '<div class="anomaly-item-isos">' + isoChips + '</div></div></div>';
       });
-
       html += '</div>';
     });
 
     if (skippedVehs.length) {
-      html += '<div style="padding:10px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-dim)">' +
-        '<strong>Comunas sin coordenadas (no analizadas):</strong> ' +
-        skippedVehs.map(function(s){ return escH(s.unknown.join(', ')); }).join(' &mdash; ') +
-        '</div>';
+      html += '<div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--surface2)">' +
+        '<span style="font-size:10px;color:var(--text-dim)">&#9432; Comunas sin coordenadas ignoradas: ' +
+        skippedVehs.map(function(s){ return '<strong>' + escH(s.veh) + '</strong>: ' + s.unknown.map(escH).join(', '); }).join(' · ') +
+        '</span></div>';
     }
-    html += '<div style="padding:10px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--text-dim)">Clic en cualquier ISO para copiarla al portapapeles.</div>';
-
     body.innerHTML = html;
-    body.querySelectorAll('.anomaly-iso-chip').forEach(function(btn){
-      btn.addEventListener('click', function(){ copiarTextoFlash(this.getAttribute('data-iso'), 'ISO copiada'); });
-    });
   }
-
   gid('anomalyOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeAnomalyModal() { gid('anomalyOverlay').classList.remove('open'); document.body.style.overflow = ''; }
-function anomalyClickOutside(e) { if (e.target===gid('anomalyOverlay')) closeAnomalyModal(); }
-
-// ── CFP ──
-function openCfp(col, btnEl, ctx) {
-  ctx = ctx || 'rev';
-  cfp_ctx = ctx; cfp_col = col; cfp_btn_el = btnEl;
-  var dataset = ctx==='modal' ? modalData : revData;
-  var filters  = ctx==='modal' ? modalFilters : revFilters;
-  var allVals = [];
-  var seen = {};
-  dataset.forEach(function(r){ var v=r[col]!=null?r[col]:''; if(!seen[v]){seen[v]=1;allVals.push(v);} });
-  allVals.sort(function(a,b){return a.localeCompare(b,'es');});
-  cfp_all = allVals;
-  cfp_pending = filters[col] ? new Set(filters[col]) : new Set(allVals);
-  var labels = {iso:'ISO', dir:'Direccion', obs:'Observacion'};
-  gid('cfp-title').textContent = labels[col]||col;
-  gid('cfp-search').value = '';
-  buildCfpList(allVals);
-  var rect = btnEl.getBoundingClientRect();
-  var popup = gid('cfp');
-  popup.style.top = (rect.bottom+4)+'px';
-  var left = rect.left;
-  if (left+250>window.innerWidth-10) left=window.innerWidth-255;
-  popup.style.left = left+'px';
-  popup.classList.add('open');
-  gid('cfp-search').focus();
+function closeAnomalyModal() {
+  gid('anomalyOverlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
-
-function buildCfpList(vals) {
-  gid('cfp-list').innerHTML = vals.map(function(v){
-    var chk = cfp_pending.has(v)?'checked':'';
-    var label = v===''?'(Vacio)':escH(v);
-    var blank = v===''?'blank':'';
-    return '<label class="cfp-item '+blank+'"><input type="checkbox" value="'+escH(v)+'" '+chk+' onchange="cfpToggle(this)"><label>'+label+'</label></label>';
-  }).join('');
-}
-
-function cfpToggle(cb) { var v=cb.value; if(cb.checked) cfp_pending.add(v); else cfp_pending.delete(v); }
-
-function cfpSearch(q) {
-  var lo=q.toLowerCase();
-  buildCfpList(cfp_all.filter(function(v){return v.toLowerCase().indexOf(lo)>=0;}));
-}
-
-function cfpSelAll(val) {
-  var q=gid('cfp-search').value.toLowerCase();
-  cfp_all.filter(function(v){return v.toLowerCase().indexOf(q)>=0;}).forEach(function(v){
-    if(val) cfp_pending.add(v); else cfp_pending.delete(v);
-  });
-  buildCfpList(cfp_all.filter(function(v){return v.toLowerCase().indexOf(q)>=0;}));
-}
-
-function cfpApply() {
-  if(!cfp_col) return;
-  var dataset = cfp_ctx==='modal' ? modalData : revData;
-  var allVals = []; var seen={};
-  dataset.forEach(function(r){var v=r[cfp_col]!=null?r[cfp_col]:'';if(!seen[v]){seen[v]=1;allVals.push(v);}});
-  var filters = cfp_ctx==='modal' ? modalFilters : revFilters;
-  var allCovered = allVals.every(function(v){return cfp_pending.has(v);});
-  if (cfp_pending.size >= allVals.length && allCovered) delete filters[cfp_col];
-  else filters[cfp_col] = new Set(cfp_pending);
-  cfpClose();
-  if (cfp_ctx==='modal') renderModalTable(); else renderRevGrid();
-}
-
-function cfpSort(dir) {
-  if(cfp_ctx==='modal'){modalSortCol=dir?cfp_col:null;modalSortDir=dir;}
-  else{revSortCol=dir?cfp_col:null;revSortDir=dir;}
-  var btns=document.querySelectorAll('#cfp .cfp-sort-row button');
-  btns.forEach(function(b){b.style.background='';b.style.color='';});
-  if(dir==='asc'){btns[0].style.background='#FFDA1A';btns[0].style.color='#111';}
-  if(dir==='desc'){btns[1].style.background='#FFDA1A';btns[1].style.color='#111';}
-  cfpApply();
-}
-
-function cfpClose() { gid('cfp').classList.remove('open'); }
-
-document.addEventListener('mousedown', function(e){
-  var cfp=gid('cfp');
-  if(cfp.classList.contains('open') && !cfp.contains(e.target) && !e.target.closest('.th-filter-btn')) cfpClose();
-});
-
-document.addEventListener('keydown', function(e){
-  if(e.key==='Escape'){
-    cfpClose();
-    if(gid('anomalyOverlay').classList.contains('open')) closeAnomalyModal();
-    else closeModal();
-  }
-});
+function anomalyClickOutside(e) { if (e.target === gid('anomalyOverlay')) closeAnomalyModal(); }
 
 // ── REVISION TAB ──
 function procesarRevision() {
-  var raw = gid('revInput').value.trim();
-  if(!raw){notif('Pega ISOs primero','err');return;}
-  if(!rawData.length){notif('Carga un archivo primero','err');return;}
-  var isos = raw.split(/[\n\r,;\s]+/).map(function(s){return s.trim().toUpperCase();}).filter(Boolean);
-  if(!isos.length){notif('No se detectaron ISOs','err');return;}
-  var lookup={};
-  rawData.forEach(function(r){lookup[r.iso.toUpperCase()]=r;});
-  revData = isos.map(function(iso){
-    var found=lookup[iso];
-    return {iso:iso, dir:found?found.dir:'—', obs:'Verificar Direccion', _id:Math.random().toString(36).substr(2,9)};
+  var raw = gid('revInput').value;
+  if (!raw.trim()) { notif('Pega algunos ISOs primero','err'); return; }
+  var isos = raw.split(/[\n,;\s]+/).map(function(s){ return s.trim().toUpperCase(); }).filter(Boolean);
+  var uniq = [...new Set(isos)];
+  revData = uniq.map(function(iso, i){
+    var match = rawData.find(function(r){ return r.iso.toUpperCase() === iso; });
+    return { iso:iso, dir: match ? match.dir : '—', obs:'', _id: 'rev_' + i };
   });
-  revFilters={}; revSortCol=null; revSortDir=null;
+  revFilters = {}; revSortCol = null; revSortDir = null;
   renderRevGrid();
   gid('revActions').style.display='flex';
   gid('badge-rev').textContent=revData.length;
@@ -1121,11 +1822,16 @@ function fbCopy(text, msg) {
 
 function limpiarTodo() {
   rawData=[]; revData=[]; revFilters={}; isoGroupStore={};
+  geoConflicts=[]; geoAnalysisDone=false; geoOffscreenBg=null;
+  cLat=null; cLng=null; cParada=null;
   gid('uploadZone').style.display='';
   gid('statsBar').style.display='none';
   gid('vehiclesScroll').innerHTML='';
   gid('badge-isos').textContent='0';
+  gid('badge-geo').textContent='0';
   gid('btnAnomaly').disabled=true;
+  gid('geoNoData').style.display='flex';
+  gid('geoContent').style.display='none';
   limpiarRevision();
   notif('Todo limpiado');
 }
@@ -1133,6 +1839,20 @@ function limpiarTodo() {
 function escH(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// Resize canvas when window resizes (if geo tab is active)
+window.addEventListener('resize', function(){
+  if (gid('tab-geo').classList.contains('active')) {
+    var wrap = gid('geoCanvasWrap');
+    if (!wrap || !geoCanvas) return;
+    var rect = wrap.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      geoCanvas.width = rect.width;
+      geoCanvas.height = rect.height;
+      drawGeoFrame();
+    }
+  }
+});
 </script>
 </body>
 </html>
