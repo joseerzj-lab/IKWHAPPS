@@ -237,6 +237,9 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .arisk-adj.si{background:rgba(63,185,80,.1);color:var(--green);border:1px solid rgba(63,185,80,.2);}
 .arisk-adj.no{background:rgba(248,81,73,.08);color:#ff7b72;border:1px solid rgba(248,81,73,.18);}
 .arisk-dist{font-size:10px;color:var(--text-muted);font-family:var(--mono);min-width:45px;text-align:right;white-space:nowrap;}
+.arisk-approve-btn{font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25);cursor:pointer;white-space:nowrap;font-family:var(--sans);font-weight:600;transition:all .12s;}
+.arisk-approve-btn:hover{background:rgba(63,185,80,.25);}
+.arisk-row.approved{opacity:.55;border-color:rgba(63,185,80,.2)!important;background:rgba(63,185,80,.03)!important;}
 .arisk-score-col{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:58px;flex-shrink:0;}
 .arisk-score-num{font-size:11px;font-weight:800;font-family:var(--mono);}
 .risk-summary-bar{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;flex-wrap:wrap;align-items:center;}
@@ -1124,12 +1127,23 @@ function renderVehList(entries){
       };
       var aKey = veh + '|' + normK(comuna);
       var isApproved = approvedAnomalies.has(aKey);
+      // Risk badge from last anomaly run
+      var riskBadge = '';
+      if(lastAnomalyResults[veh]){
+        var communeResult = lastAnomalyResults[veh].results.find(function(rx){ return normK(rx.comuna)===normK(comuna); });
+        if(communeResult){
+          var pct = Math.round(communeResult.riskScore*100);
+          var rl = communeResult.riskLevel;
+          var rc = rl==='high'?'#ff7b72':rl==='medium'?'var(--orange)':'var(--green)';
+          riskBadge = '<span style="font-size:9px;font-weight:700;color:'+rc+';font-family:var(--mono);padding:1px 5px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid '+rc.replace('var(--orange)','rgba(240,136,62,.3)').replace('#ff7b72','rgba(248,81,73,.25)').replace('var(--green)','rgba(63,185,80,.25)') +';white-space:nowrap" title="Riesgo detectado en análisis de comunas">'+pct+'%</span>';
+        }
+      }
       var tr=document.createElement('tr');
       var btnClass='ct-cnt-btn'+(isOne?' one':'');
       var approveHtml = isApproved
         ? '<span class="aprobado-badge">✓ Aprobado</span>'
         : '<button class="aprobar-btn" data-akey="'+escH(aKey)+'" title="Aprobar esta entrada — no generará alerta en el resumen">Aprobar</button>';
-      tr.innerHTML='<td class="ct-comunanm">'+escH(comuna)+'</td>'+
+      tr.innerHTML='<td class="ct-comunanm" style="display:flex;align-items:center;gap:6px">'+escH(comuna)+riskBadge+'</td>'+
         '<td style="padding:8px 16px;font-size:11px;color:var(--text-dim);font-family:var(--mono)">'+escH(provLabel)+'</td>'+
         '<td class="ct-cnt"><span class="'+btnClass+'" data-key="'+storeKey+'">'+isos.length+' <span style="font-size:9px;opacity:.7">></span></span></td>'+
         '<td style="padding:6px 10px;text-align:center;display:flex;align-items:center;gap:4px">'+
@@ -1709,7 +1723,13 @@ function analizarAnomalias(){
                   'Adj: ' + Math.round(r.adjScore*100) + '% | ' +
                   'Proporción ISOs: ' + Math.round(r.propScore*100) + '%';
 
-        return '<div class="arisk-row' + (isH ? ' alerta' : isM ? ' medium' : '') + '" title="' + tip + '">' +
+        var vehAKey = vehName + '|' + r.key;
+        var isApproved = approvedAnomalies.has(vehAKey);
+        var approveBtn = (isH || isM)
+          ? '<button class="arisk-approve-btn" data-akey="' + escH(vehAKey) + '">' + (isApproved ? '↩ Reabrir' : '✓ Resolver') + '</button>'
+          : '';
+
+        return '<div class="arisk-row' + (isH ? ' alerta' : isM ? ' medium' : '') + (isApproved ? ' approved' : '') + '" title="' + tip + '">' +
           '<div class="arisk-comuna">' +
             '<div style="display:flex;align-items:center;gap:5px">' + escH(r.comuna) + clLabel + isoCntBadge + '</div>' +
             '<div class="arisk-isos">' + chips + '</div>' +
@@ -1721,6 +1741,7 @@ function analizarAnomalias(){
           '<div class="arisk-score-col">' +
             '<div class="risk-bar"><div class="risk-bar-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
             '<span class="arisk-score-num" style="color:' + scoreColor + '">' + pct + '%</span>' +
+            approveBtn +
           '</div>' +
         '</div>';
       }).join('');
@@ -1737,6 +1758,21 @@ function analizarAnomalias(){
 
   body.querySelectorAll('.arisk-iso-chip').forEach(function(btn){
     btn.addEventListener('click', function(){ copiarTextoFlash(this.getAttribute('data-iso'), 'ISO copiada'); });
+  });
+  body.querySelectorAll('.arisk-approve-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var ak = this.getAttribute('data-akey');
+      if(approvedAnomalies.has(ak)){ approvedAnomalies.delete(ak); notif('Riesgo reabierto'); }
+      else { approvedAnomalies.add(ak); notif('Riesgo resuelto'); }
+      renderResumen();
+      var row = this.closest('.arisk-row');
+      if(row){
+        var nowApproved = approvedAnomalies.has(ak);
+        row.classList.toggle('approved', nowApproved);
+        this.textContent = nowApproved ? '↩ Reabrir' : '✓ Resolver';
+      }
+    });
   });
 
   gid('anomalyOverlay').classList.add('open');
@@ -1992,14 +2028,24 @@ function drawAllRoutes(vehs){
 function drawAllPoints(){
   var confSet=new Set(geoConflicts.map(function(c){return c.iso;}));
   var activeD=getActiveData();
+  // Build veh→color index once
+  var vehs=[]; activeD.forEach(function(r){ if(vehs.indexOf(r.veh)<0) vehs.push(r.veh); }); vehs.sort();
+  var vehColorIdx={};vehs.forEach(function(v,i){ vehColorIdx[v]=ROUTE_COLORS[i%ROUTE_COLORS.length]; });
+
   activeD.forEach(function(r){
     if(r.lat===null||r.lng===null) return;
     if(!geoVehicleVisible[r.veh]) return;
     var isConflict=confSet.has(r.iso),isResolved=geoResolved.has(r.iso);
-    var color=isResolved?'#555':isConflict?'#e04040':'#3db872';
-    var border=isResolved?'#888':'#fff';
-    var radius=isConflict?7:5;
-    var m=L.circleMarker([r.lat,r.lng],{radius:radius,fillColor:color,color:border,weight:2,opacity:1,fillOpacity:1});
+    var vehColor=vehColorIdx[r.veh]||'#4a9fd4';
+    // Dot color: resolved→grey, conflict→red, otherwise vehicle color
+    var dotColor=isResolved?'#555':isConflict?'#e04040':vehColor;
+    var borderColor=isResolved?'rgba(136,136,136,.6)':isConflict?'rgba(255,255,255,.9)':'rgba(255,255,255,.7)';
+    var sz=isConflict?18:14; // px diameter
+    var fs=isConflict?8:7;   // font size
+    var stopLabel=r.parada?String(r.parada):'';
+    var innerHtml='<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:'+dotColor+';border:1.5px solid '+borderColor+';display:flex;align-items:center;justify-content:center;font-size:'+fs+'px;font-weight:700;color:rgba(255,255,255,.95);font-family:monospace;line-height:1;box-sizing:border-box;cursor:'+(isConflict&&!isResolved?'pointer':'default')+'">'+stopLabel+'</div>';
+    var icon=L.divIcon({className:'',html:innerHtml,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+    var m=L.marker([r.lat,r.lng],{icon:icon,interactive:(isConflict&&!isResolved)});
     if(isConflict&&!isResolved){
       var conflictData=geoConflicts.find(function(c){return c.iso===r.iso;});
       (function(cd){m.on('click',function(e){L.DomEvent.stopPropagation(e);if(cd)showConflictPopup(cd,m);});})(conflictData);
@@ -2021,8 +2067,9 @@ function showConflictPopup(c,marker){
         '<div class="gpc-dist">⟂ '+c.distancia+' km del centroide · Parada #'+(c.parada||'?')+'</div>'+
       '</div>'+
       '<div class="gpc-footer">'+
-        '<button class="gpc-copy-btn" id="_gpCopy">📋 Copiar fila</button>'+
-        '<button class="'+(isResolved?'gpc-resolve-btn done':'gpc-resolve-btn')+'" id="_gpResolve">'+(isResolved?'↩ Desmarcar':'✓ Marcar resuelto')+'</button>'+
+        '<button class="gpc-copy-btn" id="_gpCopy">📋 ISO+Dir</button>'+
+        '<button class="'+(isResolved?'gpc-resolve-btn done':'gpc-resolve-btn')+'" id="_gpResolve">'+(isResolved?'↩ Desmarcar':'✓ Resolver')+'</button>'+
+        '<button class="gpc-resolve-btn'+(geoFlagged.has(c.iso)?' done':'')+'" id="_gpFlag">'+(geoFlagged.has(c.iso)?'✕ Sin alerta':'⚠ Alerta')+'</button>'+
       '</div>'+
     '</div>';
   if(_openPopup) _leafletMap.closePopup(_openPopup);
@@ -2031,16 +2078,22 @@ function showConflictPopup(c,marker){
   setTimeout(function(){
     var cb=document.getElementById('_gpCopy'),rb=document.getElementById('_gpResolve');
     if(cb) cb.addEventListener('click',function(){
-      var obs='Verificar Comuna (dice '+c.comunaDireccion+' / coordenadas: '+c.comunaCoordenadas+')';
-      var hdS='border:1px solid #000;padding:6px 10px;font-weight:bold;background:#0051BA;color:#FFDA1A;font-family:Arial,sans-serif;font-size:11px;';
+      // Copy ISO + dirección only (no header) so it pastes cleanly into a cell
       var tdS='border:1px solid #000;padding:5px 10px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
-      var rich='<table style="border-collapse:collapse"><tr><th style="'+hdS+'">ISO</th><th style="'+hdS+'">Dirección</th><th style="'+hdS+'">Observación</th></tr><tr><td style="'+tdS+'font-weight:700">'+escH(c.iso)+'</td><td style="'+tdS+'">'+escH(c.dir)+'</td><td style="'+tdS+'color:#d97706;font-weight:600">'+escH(obs)+'</td></tr></table>';
-      var plain='ISO\tDirección\tObservación\n'+c.iso+'\t'+c.dir+'\t'+obs;
-      tryCopyRich(rich,plain,'Fila copiada — pega en Excel');
+      var rich='<table style="border-collapse:collapse"><tr><td style="'+tdS+'font-weight:700">'+escH(c.iso)+'</td><td style="'+tdS+'">'+escH(c.dir)+'</td></tr></table>';
+      var plain=c.iso+'\t'+c.dir;
+      tryCopyRich(rich,plain,'Copiado: ISO + dirección');
     });
     if(rb) rb.addEventListener('click',function(){
-      if(geoResolved.has(c.iso))geoResolved.delete(c.iso);else geoResolved.add(c.iso);
-      _leafletMap.closePopup(popup);refreshAllLayers();renderGeoConflicts();
+      if(geoResolved.has(c.iso)){ geoResolved.delete(c.iso); }
+      else { geoResolved.add(c.iso); geoFlagged.delete(c.iso); }
+      _leafletMap.closePopup(popup);refreshAllLayers();renderGeoConflicts();renderResumen();
+    });
+    var fb=document.getElementById('_gpFlag');
+    if(fb) fb.addEventListener('click',function(){
+      if(geoFlagged.has(c.iso)){ geoFlagged.delete(c.iso); }
+      else { geoFlagged.add(c.iso); geoResolved.delete(c.iso); }
+      _leafletMap.closePopup(popup);refreshAllLayers();renderGeoConflicts();renderResumen();
     });
   },80);
   renderGeoConflicts();
@@ -2327,7 +2380,14 @@ function renderResumen(){
 
 // ── EXPORT FUNCTIONS ──────────────────────────────────────────────
 function exportarResumenXLSX(){
-  var rows = buildResumenRows();
+  var rows = buildResumenRows().filter(function(r){
+    if(_resumenFilter==='all')      return true;
+    if(_resumenFilter==='pending')  return r.status==='pendiente';
+    if(_resumenFilter==='fuera')    return r.tipo==='fuera';
+    if(_resumenFilter==='anomalia') return r.tipo==='anomalia';
+    if(_resumenFilter==='resolved') return r.status==='resuelto'||r.status==='aprobado';
+    return true;
+  });
   if(!rows.length){ notif('Sin datos para exportar','err'); return; }
   if(typeof XLSX === 'undefined'){ copiarResumenClipboard(); return; }
 
@@ -2349,7 +2409,14 @@ function exportarResumenXLSX(){
 }
 
 function copiarResumenClipboard(){
-  var rows = buildResumenRows();
+  var rows = buildResumenRows().filter(function(r){
+    if(_resumenFilter==='all')      return true;
+    if(_resumenFilter==='pending')  return r.status==='pendiente';
+    if(_resumenFilter==='fuera')    return r.tipo==='fuera';
+    if(_resumenFilter==='anomalia') return r.tipo==='anomalia';
+    if(_resumenFilter==='resolved') return r.status==='resuelto'||r.status==='aprobado';
+    return true;
+  });
   if(!rows.length){ notif('Sin datos para copiar','err'); return; }
   var hdS='border:1px solid #000;padding:6px 10px;font-weight:bold;background:#0051BA;color:#FFDA1A;font-family:Arial,sans-serif;font-size:11px;';
   var tdS='border:1px solid #000;padding:5px 10px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
