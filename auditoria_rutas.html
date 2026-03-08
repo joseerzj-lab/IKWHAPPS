@@ -53,6 +53,12 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .ik-upload-icon{font-size:32px;opacity:.6;}
 .ik-upload-label{font-size:13px;font-weight:600;color:var(--text-muted);}
 .ik-upload-sub{font-size:11px;color:var(--text-dim);font-family:var(--mono);}
+.ik-upload-hint{display:inline-flex;align-items:center;gap:4px;margin-top:2px;cursor:pointer;color:var(--text-dim);font-size:10px;transition:color .12s;user-select:none;}
+.ik-upload-hint:hover{color:var(--text-muted);}
+.upload-hint-icon{width:14px;height:14px;border-radius:50%;border:1px solid var(--border2);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-style:normal;flex-shrink:0;}
+.upload-hint-text{font-size:10px;}
+.ik-upload-hint-box{display:none;font-size:10px;color:var(--text-muted);font-family:var(--mono);line-height:1.8;margin-top:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:7px 12px;text-align:left;}
+.ik-upload-hint-box.open{display:block;}
 .ik-stats{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center;}
 .ik-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:80px;}
 .ik-stat-val{font-size:20px;font-weight:800;font-family:var(--mono);color:var(--text);line-height:1;}
@@ -595,23 +601,20 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       Cargar archivo
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
     </label>
-    <button class="btn-red btn-sm" onclick="limpiarTodo()">Limpiar</button>
+    <button class="btn-ghost btn-sm" onclick="limpiarTodo()" id="btnLimpiar" style="display:none">Limpiar</button>
   </div>
 </div>
 
 <!-- TABS -->
-<div class="ik-tabs">
+<div class="ik-tabs" id="ikTabs" style="display:none">
   <div class="ik-tab active" onclick="aTab('tab-mapa',this)">
-    ud83dude9b Mapa de Rutas <span class="ik-tbadge" id="badge-isos">0</span>
+    Fuera de Ruta <span class="ik-tbadge" id="badge-isos">0</span>
   </div>
   <div class="ik-tab" onclick="aTab('tab-geo',this)">
-    ud83duddfa Mapa Geo <span class="ik-tbadge red" id="badge-geo">0</span>
+    Comuna Incorrecta <span class="ik-tbadge red" id="badge-geo">0</span>
   </div>
   <div class="ik-tab" onclick="aTab('tab-resumen',this)" id="tab-resumen-btn">
-    ud83dudcca Resumen <span class="ik-tbadge red" id="badge-resumen" style="display:none">0</span>
-  </div>
-  <div class="ik-tab" onclick="aTab('tab-revision',this)" style="display:none">
-    📋 Revisión <span class="ik-tbadge" id="badge-rev">0</span>
+    Resumen <span class="ik-tbadge red" id="badge-resumen" style="display:none">0</span>
   </div>
 </div>
 
@@ -625,7 +628,15 @@ button:disabled{opacity:.35;cursor:not-allowed;}
          ondrop="onDrop(event)">
       <div class="ik-upload-icon">&#128196;</div>
       <div class="ik-upload-label">Arrastra tu archivo o haz clic para cargar</div>
-      <div class="ik-upload-sub">Columnas: Titulo u00b7 Vehiculo u00b7 Direccion u00b7 (Lat u00b7 Lng u00b7 Parada opcionales)</div>
+      <div class="ik-upload-sub">.xlsx · .xls · .csv</div>
+      <div class="ik-upload-hint" onclick="event.stopPropagation();toggleUploadHint()" title="Ver columnas esperadas">
+        <span class="upload-hint-icon">?</span>
+        <span class="upload-hint-text">¿Qué columnas necesito?</span>
+      </div>
+      <div class="ik-upload-hint-box" id="uploadHintBox">
+        <strong>Requeridas:</strong> Titulo · Vehiculo · Direccion<br>
+        <strong>Opcionales:</strong> Lat · Lng · Parada
+      </div>
     </div>
     <div class="ik-stats" id="statsBar" style="display:none">
       <div class="ik-stat"><div class="ik-stat-val" id="st-isos">0</div><div class="ik-stat-lbl">ISOs</div></div>
@@ -651,12 +662,8 @@ button:disabled{opacity:.35;cursor:not-allowed;}
   <!-- TAB 2: Mapa Geo -->
   <div class="ik-panel" id="tab-geo">
     <div id="geoPlaceholder" class="geo-placeholder" style="display:flex">
-      <div class="geo-placeholder-icon">ud83cudf0e</div>
-      <div style="font-size:13px;font-weight:600;">Carga un archivo con columnas Latitud y Longitud</div>
-      <div style="font-size:11px;text-align:center;max-width:340px;line-height:1.65;">
-        El mapa detecta conflictos donde la <strong style="color:var(--text)">comuna escrita en la direcciu00f3n</strong> no coincide con la <strong style="color:var(--text)">ubicaciu00f3n real por coordenadas</strong>.<br><br>
-        Columna <strong style="color:#7bb8ff">Parada</strong> opcional para trazar el orden de la ruta.
-      </div>
+      <div class="geo-placeholder-icon">&#127758;</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text-muted)">Carga un archivo con coordenadas para usar este mapa</div>
     </div>
     <div id="geoRoot" class="geo-root" style="display:none">
       <div class="geo-toolbar">
@@ -709,7 +716,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
     </div>
   </div>
 
-  <div class="ik-panel" id="tab-revision">
+  <div class="ik-panel" id="tab-revision" style="display:none!important">
     <div style="display:flex;gap:8px;align-items:flex-end;flex-shrink:0;flex-wrap:wrap;">
       <textarea class="rev-textarea" id="revInput" placeholder="Pega ISOs aqui (una por linea, separadas por coma o espacio)..."></textarea>
       <button class="btn-blue" onclick="procesarRevision()">Revisar ISOs</button>
@@ -2435,6 +2442,47 @@ function toggleISOFlaggedFromPopup(iso){
   var rb=document.getElementById('pRsv_'+iso);
   if(rb) rb.textContent=isISOResolved(iso)?'u21a9 Desmarcar':'\u2713 Resolver';
 }
+<script>
+// Toggle hint box
+function toggleUploadHint(){
+  var box=document.getElementById('uploadHintBox');
+  if(box) box.classList.toggle('open');
+}
+// Show tabs and limpiar button once data is loaded
+function _uiRevealOnData(){
+  var tabs=document.getElementById('ikTabs');
+  var limpiar=document.getElementById('btnLimpiar');
+  if(tabs) tabs.style.display='';
+  if(limpiar) limpiar.style.display='';
+}
+// Patch cargarArchivo to reveal UI after load
+(function(){
+  var _orig=window.cargarArchivo;
+  if(typeof _orig==='function'){
+    window.cargarArchivo=function(el){
+      _orig.call(this,el);
+      setTimeout(_uiRevealOnData,400);
+    };
+  }
+  var _origDrop=window.onDrop;
+  if(typeof _origDrop==='function'){
+    window.onDrop=function(e){
+      _origDrop.call(this,e);
+      setTimeout(_uiRevealOnData,400);
+    };
+  }
+  // Also hook limpiarTodo to hide tabs again
+  var _origLimpiar=window.limpiarTodo;
+  if(typeof _origLimpiar==='function'){
+    window.limpiarTodo=function(){
+      _origLimpiar.call(this);
+      var tabs=document.getElementById('ikTabs');
+      var limpiar=document.getElementById('btnLimpiar');
+      if(tabs) tabs.style.display='none';
+      if(limpiar) limpiar.style.display='none';
+    };
+  }
+})();
 </script>
 </body>
 </html>
