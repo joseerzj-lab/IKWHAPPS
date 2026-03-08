@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Auditoría de Rutas — IKEA Tools</title>
-<script src="xlsx.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -597,7 +597,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
     <button class="btn-ghost btn-sm" id="btnExcludeVeh" onclick="toggleExcludeVehPopup()" disabled style="position:relative">
       🚫 Excluir vehículos <span id="exclBadge" style="display:none;background:var(--orange);color:#111;border-radius:10px;padding:0 5px;font-size:9px;margin-left:3px"></span>
     </button>
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
+
     <button class="btn-ghost btn-sm" onclick="limpiarTodo()" id="btnLimpiar" style="display:none">Limpiar</button>
   </div>
 </div>
@@ -626,6 +626,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <div class="ik-upload-icon">&#128196;</div>
       <div class="ik-upload-label">Arrastra tu archivo o haz clic para cargar</div>
       <div class="ik-upload-sub">.xlsx · .xls · .csv</div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
     </div>
     <div class="ik-stats" id="statsBar" style="display:none">
       <div class="ik-stat"><div class="ik-stat-val" id="st-isos">0</div><div class="ik-stat-lbl">ISOs</div></div>
@@ -1000,7 +1001,7 @@ function processFile(file){
     try{
       var rows;
       if(/\.xlsx?$/i.test(file.name)){
-        if(typeof XLSX==='undefined'){notif('xlsx_min.js no encontrado','err');return;}
+        if(typeof XLSX==='undefined'){notif('Error: librería XLSX no cargó','err');return;}
         var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
         rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
       } else {
