@@ -580,6 +580,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       🚫 Excluir vehículos <span id="exclBadge" style="display:none;background:var(--orange);color:#111;border-radius:10px;padding:0 5px;font-size:9px;margin-left:3px"></span>
     </button>
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
+    <button class="btn-anomaly" id="btnAnomaly" style="font-size:11px;padding:5px 11px;" onclick="analizarAnomalias()" disabled>Detectar Anomalías</button>
     <button class="btn-ghost btn-sm" onclick="limpiarTodo()">Limpiar</button>
   </div>
 </div>
@@ -614,20 +615,15 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <div class="ik-stat"><div class="ik-stat-val" id="st-vehs">0</div><div class="ik-stat-lbl">Vehiculos</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-comunas">0</div><div class="ik-stat-lbl">Comunas</div></div>
       <div class="ik-stat"><div class="ik-stat-val" id="st-unicas" style="color:var(--orange)">0</div><div class="ik-stat-lbl">1 ISO / comuna</div></div>
-      <div style="margin-left:auto">
-        <button class="btn-anomaly" id="btnAnomaly" onclick="analizarAnomalias()" disabled>
-          &#128301; Detectar Comunas Anomalas
-        </button>
-      </div>
+
     </div>
     <div class="veh-search-bar" id="vehSearchBar" style="display:none">
       <input class="veh-search-input" id="vehSearchInput" placeholder="🔍 Buscar vehículo..." oninput="filtrarVehiculos(this.value)">
       <span class="veh-count-lbl" id="vehCountLbl"></span>
-      <button class="vvt-btn active" id="vvtList" onclick="setVehView('list')">☰ Lista</button>
-      <button class="vvt-btn" id="vvtGrid" onclick="setVehView('grid')">⊞ Grid</button>
+
     </div>
     <div class="vehicles-scroll" id="vehiclesScroll"></div>
-    <div class="veh-grid-wrap" id="vehiclesGrid" style="display:none"></div>
+
   </div>
 
 
@@ -716,7 +712,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
   <div class="ik-panel" id="tab-resumen">
     <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
       <div style="font-size:12px;color:var(--text-muted);flex:1">
-        Consolidado de conflictos geográficos y comunas anómalas detectadas.
+        Consolidado de alertas detectadas.
         <span id="resumenCount" style="color:var(--text-dim);font-family:var(--mono);margin-left:6px"></span>
       </div>
       <button class="btn-ghost btn-sm" onclick="renderResumen()">↺ Actualizar</button>
@@ -727,8 +723,8 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <span style="font-size:10px;color:var(--text-dim)">Filtrar:</span>
       <button class="rsm-filter-btn active" data-filter="all" onclick="setResumenFilter('all',this)">Todos</button>
       <button class="rsm-filter-btn" data-filter="pending" onclick="setResumenFilter('pending',this)">⏳ Pendiente</button>
-      <button class="rsm-filter-btn" data-filter="fuera" onclick="setResumenFilter('fuera',this)">🗺 Fuera de ruta</button>
-      <button class="rsm-filter-btn" data-filter="anomalia" onclick="setResumenFilter('anomalia',this)">⚠ Anomalía</button>
+      <button class="rsm-filter-btn" data-filter="fuera" onclick="setResumenFilter('fuera',this)">Fuera de Ruta</button>
+      <button class="rsm-filter-btn" data-filter="anomalia" onclick="setResumenFilter('anomalia',this)">Comuna Incorrecta</button>
       <button class="rsm-filter-btn" data-filter="resolved" onclick="setResumenFilter('resolved',this)">✓ Resueltos</button>
     </div>
     <div class="ik-grid-wrap" id="resumenGridWrap" style="flex:1;overflow:auto">
@@ -1105,11 +1101,8 @@ function setVehView(mode){
 }
 
 function renderVehiculos(entries){
-  var useGrid=_vehView==='grid';
-  gid('vehiclesScroll').style.display=useGrid?'none':'flex';
-  gid('vehiclesGrid').style.display=useGrid?'grid':'none';
-  if(useGrid) renderVehGrid(entries);
-  else renderVehList(entries);
+  gid('vehiclesScroll').style.display='flex';
+  renderVehList(entries);
 }
 
 // ── Grid view ──
@@ -1966,7 +1959,7 @@ function limpiarTodo(){
   approvedAnomalies.clear(); geoFlagged.clear(); anomalyFlagged.clear(); lastAnomalyResults={};
   rawData=[];revData=[];revFilters={};isoGroupStore={};_allVehEntries=[];excludedVehicles=new Set();updateExclBadge();gid('btnExcludeVeh').disabled=true;
   gid('uploadZone').style.display='';gid('statsBar').style.display='none';
-  gid('vehiclesScroll').innerHTML='';gid('vehiclesGrid').innerHTML='';
+  gid('vehiclesScroll').innerHTML='';
   gid('vehSearchBar').style.display='none';gid('badge-isos').textContent='0';gid('btnAnomaly').disabled=true;
   limpiarRevision();
   if(_leafletMap){
@@ -2395,7 +2388,7 @@ function renderResumen(){
 
   // Update export/copy button labels to reflect exactly what will be exported
   (function(){
-    var filterLabels = {all:'todos', pending:'pendientes', fuera:'fuera de ruta', anomalia:'anomalías', resolved:'resueltos'};
+    var filterLabels = {all:'todos', pending:'pendientes', fuera:'fuera de ruta', anomalia:'comuna incorrecta', resolved:'resueltos'};
     var lbl = filterLabels[_resumenFilter] ? ' (' + filterLabels[_resumenFilter] + ')' : '';
     var eb = gid('btnExportResumen'); if(eb) eb.textContent = '⬇ Exportar ' + visible.length + lbl;
     var cb = gid('btnCopiarResumen'); if(cb) cb.textContent = '📋 Copiar ' + visible.length + lbl;
@@ -2411,14 +2404,14 @@ function renderResumen(){
   }
 
   var html = '<table class="rsm-table"><thead><tr>'+
-    '<th>#</th><th>ISO</th><th>Gestión</th><th>Dirección</th><th>Observación</th><th>Tipo</th><th>Estado</th><th>Acciones</th>'+
+    '<th>#</th><th>ISO</th><th>Gestión</th><th>Dirección</th><th>Observación</th><th>Estado</th><th>Acciones</th>'+
     '</tr></thead><tbody>';
 
   visible.forEach(function(r, i){
     var isResolved = r.status === 'resuelto' || r.status === 'aprobado';
     var tipoBadge = r.tipo === 'fuera'
-      ? '<span class="rsm-badge-tipo rsm-badge-fuera">Geo</span>'
-      : '<span class="rsm-badge-tipo rsm-badge-anomalia">Ruta</span>';
+      ? '<span class="rsm-badge-tipo rsm-badge-fuera">Fuera de Ruta</span>'
+      : '<span class="rsm-badge-tipo rsm-badge-anomalia">Comuna Incorrecta</span>';
     var obsClass = r.tipo === 'fuera' ? 'fuera' : (r.status === 'aprobado' ? 'aprobado' : 'anomalia');
 
     var estadoHtml;
@@ -2461,7 +2454,6 @@ function renderResumen(){
       '<td class="rsm-veh-col" title="'+escH(r.veh)+'">'+escH(r.veh)+'</td>'+
       '<td class="rsm-dir-col">'+escH(r.dir||'—')+'</td>'+
       '<td class="rsm-obs-col '+obsClass+'">'+escH(r.obs)+'</td>'+
-      '<td style="text-align:center">'+tipoBadge+'</td>'+
       '<td style="text-align:center">'+estadoHtml+'</td>'+
       '<td style="white-space:nowrap;text-align:center">'+actionHtml+'</td>'+
     '</tr>';
