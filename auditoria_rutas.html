@@ -393,6 +393,24 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 .iso-field-val.conflict{color:#ff7b72;border-color:rgba(248,81,73,.3);background:rgba(248,81,73,.06);}
 .iso-detail-foot{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0;}
 /* conflict popup card in leaflet */
+
+/* ── Minimal geo tooltip ── */
+.geo-tip{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 12px;min-width:180px;max-width:260px;font-family:var(--sans);}
+.geo-tip-iso{font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono);margin-bottom:5px;}
+.geo-tip-row{display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap;}
+.geo-tip-from{font-size:10px;background:rgba(0,81,186,.18);color:#7bb8ff;padding:1px 6px;border-radius:3px;font-weight:700;}
+.geo-tip-to{font-size:10px;background:rgba(200,64,64,.18);color:#e06060;padding:1px 6px;border-radius:3px;font-weight:700;}
+.geo-tip-arrow{font-size:10px;color:var(--text-dim);}
+.geo-tip-dir{font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.4;}
+.geo-tip-actions{display:flex;gap:5px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.geo-tip-btn{font-size:10px;padding:3px 9px;border-radius:var(--rs);background:var(--surface2);color:var(--text-muted);border:1px solid var(--border);cursor:pointer;font-family:var(--sans);font-weight:600;transition:all .12s;}
+.geo-tip-btn:hover{background:var(--surface3);color:var(--text);}
+.geo-tip-btn.resolved{color:var(--green);border-color:rgba(63,185,80,.3);background:rgba(63,185,80,.08);}
+/* Override leaflet popup padding for our tooltip */
+.leaflet-popup-content-wrapper{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;}
+.leaflet-popup-content{margin:0!important;}
+.leaflet-popup-tip-container{display:none!important;}
+
 .geo-popup-card{background:var(--surface);border:1px solid var(--border2);border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.75);width:268px;overflow:hidden;font-family:var(--sans);font-size:12px;}
 .gpc-header{background:linear-gradient(135deg,#1a0505,#2d0d0d);padding:10px 12px 8px;border-bottom:1px solid rgba(200,64,64,.25);}
 .gpc-iso{font-size:14px;font-weight:700;color:#ff7b72;font-family:var(--mono);}
@@ -524,19 +542,6 @@ button:disabled{opacity:.35;cursor:not-allowed;}
 </div>
 
 <!-- ANOMALY MODAL -->
-<div class="modal-overlay" id="anomalyOverlay" onclick="anomalyClickOutside(event)">
-  <div class="anomaly-modal-box">
-    <div class="anomaly-modal-header">
-      <div class="modal-title">
-        <div class="anomaly-modal-title-main" id="anomalyModalTitle">Análisis de Riesgo de Rutas</div>
-        <div class="anomaly-modal-title-sub" id="anomalySubtitle">analizando distancias entre comunas por vehiculo</div>
-      </div>
-      <button class="modal-close" style="border-color:rgba(248,81,73,.3);color:#ff7b72;" onclick="closeAnomalyModal()">x Cerrar</button>
-    </div>
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;" id="anomalyBody"></div>
-  </div>
-</div>
-
 <!-- ROUTE ALERT MAP MODAL -->
 <div class="rta-overlay" id="rtaOverlay">
   <div class="rta-box" id="rtaBox">
@@ -590,6 +595,9 @@ button:disabled{opacity:.35;cursor:not-allowed;}
   <div class="ik-tab active" onclick="aTab('tab-mapa',this)">
     Fuera de Ruta <span class="ik-tbadge" id="badge-isos">0</span>
   </div>
+  <div class="ik-tab" onclick="aTab('tab-vehiculos',this)">
+    Vehículos <span class="ik-tbadge" id="badge-vehs-tab">0</span>
+  </div>
   <div class="ik-tab" onclick="aTab('tab-geo',this)">
     Comuna Incorrecta <span class="ik-tbadge red" id="badge-geo">0</span>
   </div>
@@ -617,15 +625,26 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       <div class="ik-stat"><div class="ik-stat-val" id="st-unicas" style="color:var(--orange)">0</div><div class="ik-stat-lbl">1 ISO / comuna</div></div>
 
     </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;" id="anomalyBody">
+      <div class="ik-empty"><div class="ik-empty-icon">📊</div>Carga un archivo para ver el análisis</div>
+    </div>
+    <!-- vehículos tab elements (hidden, used by tab-vehiculos) -->
     <div class="veh-search-bar" id="vehSearchBar" style="display:none">
       <input class="veh-search-input" id="vehSearchInput" placeholder="🔍 Buscar vehículo..." oninput="filtrarVehiculos(this.value)">
       <span class="veh-count-lbl" id="vehCountLbl"></span>
-
     </div>
-    <div class="vehicles-scroll" id="vehiclesScroll"></div>
-
+    <div class="vehicles-scroll" id="vehiclesScroll" style="display:none"></div>
   </div>
 
+
+  <!-- TAB: Vehículos -->
+  <div class="ik-panel" id="tab-vehiculos">
+    <div class="veh-search-bar" id="vehSearchBarV" style="display:flex">
+      <input class="veh-search-input" id="vehSearchInputV" placeholder="🔍 Buscar vehículo..." oninput="filtrarVehiculosV(this.value)">
+      <span class="veh-count-lbl" id="vehCountLblV"></span>
+    </div>
+    <div class="vehicles-scroll" id="vehiclesScrollV"></div>
+  </div>
 
   <!-- TAB 2: Mapa Geo -->
   <div class="ik-panel" id="tab-geo">
@@ -1030,6 +1049,7 @@ function processFile(file){
       var hasGeo=rawData.some(function(r){return r.lat!==null&&r.lng!==null;});
       renderMapa();
       setTimeout(function(){ if(typeof analizarAnomalias==="function") analizarAnomalias(); },100);
+      aTab('tab-mapa', document.querySelector('.ik-tab'));
       if(hasGeo){
         gid('geoPlaceholder').style.display='none';
         gid('geoRoot').style.display='flex';
@@ -1084,6 +1104,9 @@ function renderMapa(){
   _allVehEntries=Object.entries(vehMap).sort(function(a,b){return a[0].localeCompare(b[0],'es');});
   gid('vehCountLbl').textContent=_allVehEntries.length+' vehículos';
   renderVehiculos(_allVehEntries);
+  if(gid('badge-vehs-tab')) gid('badge-vehs-tab').textContent=_allVehEntries.length;
+  if(gid('vehCountLblV')) gid('vehCountLblV').textContent=_allVehEntries.length+' vehículos';
+  if(gid('vehiclesScrollV')) renderVehiculosV(_allVehEntries);
 }
 
 function filtrarVehiculos(q){
@@ -1162,13 +1185,9 @@ function renderVehList(entries){
       tr.innerHTML='<td class="ct-comunanm" style="display:flex;align-items:center;gap:6px">'+escH(comuna)+riskBadge+'</td>'+
         '<td style="padding:8px 16px;font-size:11px;color:var(--text-dim);font-family:var(--mono)">'+escH(provLabel)+'</td>'+
         '<td class="ct-cnt"><span class="'+btnClass+'" data-key="'+storeKey+'">'+isos.length+' <span style="font-size:9px;opacity:.7">></span></span></td>'+
-        '<td style="padding:6px 10px;text-align:center;display:flex;align-items:center;gap:4px">'+
-          '<button class="btn-ghost btn-xs" data-key="'+storeKey+'">Ver</button>'+
-          approveHtml+
-        '</td>';
+        '<td style="padding:6px 10px;text-align:center">'+approveHtml+'</td>';
       tbody.appendChild(tr);
       tr.querySelector('.ct-cnt-btn').addEventListener('click',function(){openGroupModal(this.getAttribute('data-key'));});
-      tr.querySelector('.btn-ghost').addEventListener('click',function(){openGroupModal(this.getAttribute('data-key'));});
       // Open route alert map modal on risk badge click
       var rmb = tr.querySelector('.risk-map-btn');
       if(rmb) rmb.addEventListener('click', function(e){
@@ -1655,7 +1674,7 @@ function analizarAnomalias(){
   // ── Render ──────────────────────────────────────────────────────
   var vehiclesAnalyzed = Object.keys(byVeh).length;
 
-  gid('anomalySubtitle').textContent =
+  if(gid('anomalySubtitle')) gid('anomalySubtitle').textContent =
     totalAlertas + ' alerta' + (totalAlertas !== 1 ? 's' : '') +
     (totalMedium ? ' · ' + totalMedium + ' moderada' + (totalMedium !== 1 ? 's' : '') : '') +
     ' · ' + vehiclesAnalyzed + ' vehículo' + (vehiclesAnalyzed !== 1 ? 's' : '') +
@@ -1665,7 +1684,7 @@ function analizarAnomalias(){
 
   if(!vehiclesAnalyzed){
     body.innerHTML = '<div class="no-anomalies"><div class="no-anomalies-icon">&#9989;</div><div style="font-size:13px;font-weight:600;">Sin datos suficientes para analizar</div></div>';
-    gid('anomalyOverlay').classList.add('open'); document.body.style.overflow = 'hidden'; return;
+    return;
   }
 
   var allResults = [];
@@ -1832,16 +1851,15 @@ function analizarAnomalias(){
     });
   });
 
-  gid('anomalyOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+
 
   if(totalAlertas) notif(totalAlertas + ' alerta' + (totalAlertas !== 1 ? 's' : '') + ' de riesgo alto detectadas', 'err');
   else if(totalMedium) notif(totalMedium + ' ruta' + (totalMedium !== 1 ? 's' : '') + ' con riesgo moderado');
   else notif('Sin alertas — todas las rutas son compactas');
 }
 
-function closeAnomalyModal(){gid('anomalyOverlay').classList.remove('open');document.body.style.overflow='';}
-function anomalyClickOutside(e){if(e.target===gid('anomalyOverlay'))closeAnomalyModal();}
+function closeAnomalyModal(){}
+function anomalyClickOutside(e){}
 
 // ── CFP ──
 function openCfp(col,btnEl,ctx){
@@ -1873,7 +1891,7 @@ function cfpSort(dir){
 }
 function cfpClose(){gid('cfp').classList.remove('open');}
 document.addEventListener('mousedown',function(e){var cfp=gid('cfp');if(cfp.classList.contains('open')&&!cfp.contains(e.target)&&!e.target.closest('.th-filter-btn'))cfpClose();});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){cfpClose();if(gid('anomalyOverlay').classList.contains('open'))closeAnomalyModal();else if(gid('vehModalOverlay').classList.contains('open'))closeVehModal();else closeModal();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){cfpClose();if(gid('vehModalOverlay').classList.contains('open'))closeVehModal();else closeModal();}});
 
 // ── REVISION ──
 function procesarRevision(){
@@ -2286,14 +2304,14 @@ function buildResumenRows(){
   geoConflicts.forEach(function(c){
     var resolved = geoResolved.has(c.iso);
     var flagged  = geoFlagged.has(c.iso);
-    var obs = 'Fuera de ruta (dice ' + c.comunaDireccion + ' → coord. ' + c.comunaCoordenadas + ')';
+    var obs = 'Comuna incorrecta: dice ' + c.comunaDireccion + ' → coordenadas indican ' + c.comunaCoordenadas;
     var status = resolved ? 'resuelto' : (flagged ? 'alerta' : 'pendiente');
     rows.push({
       iso:    c.iso,
       veh:    c.veh,
       dir:    c.dir,
       obs:    obs,
-      tipo:   'fuera',
+      tipo:   'geo',
       status: status
     });
   });
@@ -2311,15 +2329,15 @@ function buildResumenRows(){
       isos.forEach(function(isoRow){
         var alreadyGeo = geoConflicts.some(function(c){ return c.iso === isoRow.iso; });
         var obs = r.riskLevel === 'high'
-          ? 'Posible error de comuna (' + Math.round(r.riskScore*100) + '% riesgo)'
-          : 'Revisar comuna — riesgo moderado (' + Math.round(r.riskScore*100) + '%)';
+          ? 'Fuera de ruta — ' + r.comuna + ' (' + Math.round(r.riskScore*100) + '% riesgo)'
+          : 'Fuera de ruta posible — ' + r.comuna + ' (' + Math.round(r.riskScore*100) + '% riesgo)';
         var anom_flagged = anomalyFlagged.has(aKey);
         rows.push({
           iso:      isoRow.iso,
           veh:      veh,
           dir:      isoRow.dir || '',
           obs:      obs,
-          tipo:     'anomalia',
+          tipo:     'fuera',
           status:   approved ? 'aprobado' : (anom_flagged ? 'alerta' : (alreadyGeo ? 'en_geo' : 'pendiente')),
           riskLevel: r.riskLevel,
           aKey:     aKey
@@ -2340,7 +2358,7 @@ function renderResumen(){
     if(_resumenFilter === 'all')      return true;
     if(_resumenFilter === 'pending')  return r.status === 'pendiente';
     if(_resumenFilter === 'fuera')    return r.tipo === 'fuera';
-    if(_resumenFilter === 'anomalia') return r.tipo === 'anomalia';
+    if(_resumenFilter === 'anomalia') return r.tipo === 'geo';
     if(_resumenFilter === 'resolved') return r.status === 'resuelto' || r.status === 'aprobado';
     return true;
   });
@@ -2377,6 +2395,7 @@ function renderResumen(){
   visible.forEach(function(r, i){
     var isResolved = r.status === 'resuelto' || r.status === 'aprobado';
     var tipoBadge = r.tipo === 'fuera'
+      r.tipo === 'fuera'
       ? '<span class="rsm-badge-tipo rsm-badge-fuera">Fuera de Ruta</span>'
       : '<span class="rsm-badge-tipo rsm-badge-anomalia">Comuna Incorrecta</span>';
     var obsClass = r.tipo === 'fuera' ? 'fuera' : (r.status === 'aprobado' ? 'aprobado' : 'anomalia');
@@ -2466,7 +2485,7 @@ function exportarResumenXLSX(){
     if(_resumenFilter==='all')      return true;
     if(_resumenFilter==='pending')  return r.status==='pendiente';
     if(_resumenFilter==='fuera')    return r.tipo==='fuera';
-    if(_resumenFilter==='anomalia') return r.tipo==='anomalia';
+    if(_resumenFilter==='anomalia') return r.tipo==='geo';
     if(_resumenFilter==='resolved') return r.status==='resuelto'||r.status==='aprobado';
     return true;
   });
@@ -2478,7 +2497,7 @@ function exportarResumenXLSX(){
   rows.forEach(function(r){
     wsData.push([
       r.iso, r.veh, r.dir, r.obs,
-      r.tipo === 'fuera' ? 'Fuera de ruta' : 'Anomalía de ruta',
+      r.tipo === 'fuera' ? 'Fuera de Ruta' : 'Comuna Incorrecta',
       r.status === 'resuelto' ? 'Resuelto' : r.status === 'aprobado' ? 'Aprobado' : r.status === 'alerta' ? 'Alerta confirmada' : 'Pendiente'
     ]);
   });
@@ -2495,7 +2514,7 @@ function copiarResumenClipboard(){
     if(_resumenFilter==='all')      return true;
     if(_resumenFilter==='pending')  return r.status==='pendiente';
     if(_resumenFilter==='fuera')    return r.tipo==='fuera';
-    if(_resumenFilter==='anomalia') return r.tipo==='anomalia';
+    if(_resumenFilter==='anomalia') return r.tipo==='geo';
     if(_resumenFilter==='resolved') return r.status==='resuelto'||r.status==='aprobado';
     return true;
   });
@@ -2690,16 +2709,13 @@ function openRtaModal(veh){
             (rl==='high'?'⚠ Alerta alta':'· Moderada')+' — '+risk.pct+'% riesgo de comuna</div>'
         : '';
       var popupHtml =
-        '<div class="geo-popup-card" style="min-width:200px;">'+
-          '<div class="gpc-header"><div class="gpc-iso">'+escH(r.iso)+'</div><div class="gpc-veh" style="font-size:9px;color:var(--text-dim)">Parada #'+stopNum+'</div></div>'+
-          '<div class="gpc-body">'+
-            '<div class="gpc-addr">'+escH(r.dir)+'</div>'+
-            '<div class="gpc-row" style="margin-top:4px;"><span style="font-size:9px;color:var(--text-dim)">Comuna:</span><span class="gpc-from">'+escH(r.comuna)+'</span></div>'+
-            '<div class="gpc-dist">📍 '+r.lat.toFixed(5)+', '+r.lng.toFixed(5)+'</div>'+
-            riskHtml + confHtml +
-          '</div>'+
-          '<div class="gpc-footer">'+
-            '<button class="gpc-copy-btn" onclick="copiarTextoFlash(\''+escH(r.iso)+'\',\'ISO copiada\')">📋 Copiar ISO</button>'+
+        '<div class="geo-tip">'+
+          '<div class="geo-tip-iso">'+escH(r.iso)+'<span style="font-size:9px;color:var(--text-dim);margin-left:6px;font-weight:400">#'+stopNum+'</span></div>'+
+          '<div class="geo-tip-dir">'+escH(r.dir)+'</div>'+
+          '<div class="geo-tip-row"><span class="geo-tip-from">'+escH(r.comuna)+'</span></div>'+
+          riskHtml + confHtml +
+          '<div class="geo-tip-actions">'+
+            '<button class="geo-tip-btn" onclick="copiarTextoFlash(\''+escH(r.iso)+'\',\'ISO copiada\')">Copiar</button>'+
           '</div>'+
         '</div>';
       mk.bindPopup(popupHtml, {maxWidth:300, className:''});
@@ -2719,7 +2735,7 @@ function openRtaModal(veh){
 function closeRtaModal(){
   gid('rtaOverlay').classList.remove('open');
   // Only restore scroll if no other modal is open
-  if(!gid('anomalyOverlay').classList.contains('open') && !gid('modalOverlay').classList.contains('open')){
+  if(!gid('modalOverlay').classList.contains('open')){
     document.body.style.overflow = '';
   }
   if(_rtaMap){ _rtaMap.remove(); _rtaMap = null; }
@@ -2745,6 +2761,58 @@ window.addEventListener('resize',function(){if(_leafletMap&&gid('tab-geo')&&gid(
   document.head.appendChild(s);
 })();
 
+
+function filtrarVehiculosV(q){
+  var lo=q.toLowerCase();
+  var filtered=_allVehEntries.filter(function(e){return e[0].toLowerCase().indexOf(lo)>=0;});
+  gid('vehCountLblV').textContent=filtered.length+(filtered.length!==_allVehEntries.length?' de '+_allVehEntries.length:'')+' vehículos';
+  renderVehiculosV(filtered);
+}
+function renderVehiculosV(entries){
+  var scroll=gid('vehiclesScrollV');
+  if(!scroll) return;
+  scroll.innerHTML='';
+  // reuse same renderVehList logic by temporarily swapping container
+  var orig=gid('vehiclesScroll');
+  var realScroll=orig;
+  // Build into vehiclesScrollV using same render logic
+  entries.forEach(function(entry){
+    var veh=entry[0], comunas=entry[1];
+    var totalIsos=0;
+    Object.values(comunas).forEach(function(a){totalIsos+=a.length;});
+    var soloUnaCount=Object.values(comunas).filter(function(a){return a.length===1;}).length;
+    var block=document.createElement('div');
+    block.className='veh-block open';
+    var header=document.createElement('div');
+    header.className='veh-header';
+    var pillsHtml='<span class="pill pill-blue">'+totalIsos+' ISOs</span> <span class="pill pill-dim">'+Object.keys(comunas).length+' comunas</span>';
+    if(soloUnaCount) pillsHtml+='<span class="pill pill-orange">⚠ '+soloUnaCount+' solo 1</span>';
+    header.innerHTML='<div class="veh-left"><span style="font-size:18px">🚛</span><div class="veh-name">'+escH(veh)+'</div><div class="veh-pills">'+pillsHtml+'</div></div><div class="veh-chev">v</div>';
+    header.addEventListener('click',function(){block.classList.toggle('open');});
+    block.appendChild(header);
+    var body=document.createElement('div');
+    body.className='veh-body';
+    var table=document.createElement('table');
+    table.className='comunas-table';
+    table.innerHTML='<thead><tr><th>Comuna</th><th style="text-align:right">ISOs</th></tr></thead>';
+    var tbody=document.createElement('tbody');
+    Object.entries(comunas).sort(function(a,b){return b[1].length-a[1].length;}).forEach(function(ce){
+      var tr=document.createElement('tr');
+      var cnt=ce[1].length;
+      var btn=document.createElement('button');
+      btn.className='ct-cnt-btn'+(cnt===1?' one':'');
+      btn.textContent=cnt;
+      btn.addEventListener('click',function(e){e.stopPropagation();openModal(veh,ce[0],ce[1]);});
+      var tdN=document.createElement('td');tdN.className='ct-comunanm';tdN.textContent=ce[0];
+      var tdC=document.createElement('td');tdC.className='ct-cnt';tdC.appendChild(btn);
+      tr.appendChild(tdN);tr.appendChild(tdC);tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    body.appendChild(table);
+    block.appendChild(body);
+    scroll.appendChild(block);
+  });
+}
 </script>
 
 
