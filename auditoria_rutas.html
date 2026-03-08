@@ -2113,8 +2113,8 @@ function showConflictPopup(c,marker){
     '<div class="gpc-dist">u27c2 '+c.distancia+' km u00b7 Parada #'+(c.parada||'?')+'</div></div>'+
     '<div class="gpc-footer">'+
       '<button class="gpc-copy-btn" id="_gpCopy">ud83dudccb ISO+Dir</button>'+
-      '<button class="'+(isResolved?'gpc-resolve-btn done':'gpc-resolve-btn')+'" id="_gpResolve">'+(isResolved?'u21a9 Desmarcar':'u2713 Resolver')+'</button>'+
-      '<button id="_gpFlag" style="background:'+(isFlg?'transparent':'rgba(248,81,73,.12)')+';color:'+(isFlg?'var(--text-dim)':'#ff7b72')+';border:1px solid '+(isFlg?'var(--border)':'rgba(248,81,73,.38)')+';border-radius:var(--rs);padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);">'+(isFlg?'u21a9 Quitar alerta':'u26a0 Alerta')+'</button>'+
+      '<button class="'+(isResolved?'gpc-resolve-btn done':'gpc-resolve-btn')+'" id="_gpResolve">'+(isResolved?'↩ Desmarcar':'✓ Resolver')+'</button>'+
+      '<button id="_gpFlag" style="background:'+(isFlg?'transparent':'rgba(248,81,73,.12)')+';color:'+(isFlg?'var(--text-dim)':'#ff7b72')+';border:1px solid '+(isFlg?'var(--border)':'rgba(248,81,73,.38)')+';border-radius:var(--rs);padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);">'+(isFlg?'↩ Quitar alerta':'⚠ Alerta')+'</button>'+
     '</div></div>';
   if(_openPopup) _leafletMap.closePopup(_openPopup);
   var popup=L.popup({maxWidth:290,className:'',closeButton:true,autoClose:true}).setLatLng([c.lat,c.lng]).setContent(html).openOn(_leafletMap);
@@ -2719,8 +2719,8 @@ function openRtaModal(veh){
           riskHtml+confHtml+resolvedHtml+
         '</div>'+
         '<div class="gpc-footer">'+
-          '<button class="gpc-resolve-btn" onclick="toggleISOResolvedFromPopup(\''+escH(r.iso)+'\')" id="pRsv_'+escH(r.iso)+'">'+(isISOResolved(r.iso)?'u21a9 Desmarcar':'u2713 Resolver')+'</button>'+
-          '<button class="gpc-resolve-btn" style="background:rgba(248,81,73,.1);color:#ff7b72;border-color:rgba(248,81,73,.3);" onclick="toggleISOFlaggedFromPopup(\''+escH(r.iso)+'\')" id="pFlg_'+escH(r.iso)+'">'+(isISOFlagged(r.iso)?'u21a9 Quitar alerta':'u26a0 Alerta')+'</button>'+
+          '<button class="gpc-resolve-btn" onclick="toggleISOResolvedFromPopup(\''+escH(r.iso)+'\')" id="pRsv_'+escH(r.iso)+'">'+(isISOResolved(r.iso)?'↩ Desmarcar':'✓ Resolver')+'</button>'+
+          '<button class="gpc-resolve-btn" style="background:rgba(248,81,73,.1);color:#ff7b72;border-color:rgba(248,81,73,.3);" onclick="toggleISOFlaggedFromPopup(\''+escH(r.iso)+'\')" id="pFlg_'+escH(r.iso)+'">'+(isISOFlagged(r.iso)?'↩ Quitar alerta':'⚠ Alerta')+'</button>'+
           '<button class="gpc-copy-btn" onclick="copiarTextoFlash(\''+escH(r.iso)+'\',\'ISO copiada\')">ud83dudccb</button>'+
         '</div>'+
       '</div>';
@@ -2739,14 +2739,18 @@ function toggleISOResolvedFromPopup(iso){
   if(isISOResolved(iso)) unresolveISO(iso); else resolveISO(iso);
   syncAllViews();
   var btn=document.getElementById('pRsv_'+iso);
-  if(btn) btn.textContent=isISOResolved(iso)?'u21a9 Desmarcar':'u2713 Resolver';
+  if(btn) btn.textContent=isISOResolved(iso)?'↩ Desmarcar':'✓ Resolver';
   var fb=document.getElementById('pFlg_'+iso);
-  if(fb) fb.textContent=isISOFlagged(iso)?'u21a9 Quitar alerta':'u26a0 Alerta';
+  if(fb) fb.textContent=isISOFlagged(iso)?'↩ Quitar alerta':'⚠ Alerta';
 }
 function toggleISOFlaggedFromPopup(iso){
   if(isISOFlagged(iso)) unflagISO(iso); else flagISO(iso);
   syncAllViews();
   var fb=document.getElementById('pFlg_'+iso);
-  if(fb) fb.textContent=isISOFlagged(iso)?'u21a9 Quitar alerta':'u26a0 Alerta';
+  if(fb) fb.textContent=isISOFlagged(iso)?'↩ Quitar alerta':'⚠ Alerta';
   var rb=document.getElementById('pRsv_'+iso);
-  if(rb) rb.textContent=isISOResolved(iso)?'u21a9
+  if(rb) rb.textContent=isISOResolved(iso)?'↩ Desmarcar':'✓ Resolver';  if(rb) rb.textContent=isISOResolved(iso)?'↩ Desmarcar':'✓ Resolver';
+}
+</script>
+</body>
+</html>
