@@ -580,7 +580,7 @@ button:disabled{opacity:.35;cursor:not-allowed;}
       🚫 Excluir vehículos <span id="exclBadge" style="display:none;background:var(--orange);color:#111;border-radius:10px;padding:0 5px;font-size:9px;margin-left:3px"></span>
     </button>
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="cargarArchivo(this)">
-    <button class="btn-anomaly" id="btnAnomaly" style="font-size:11px;padding:5px 11px;" onclick="analizarAnomalias()" disabled>Detectar Anomalías</button>
+    <button class="btn-anomaly" id="btnAnomaly" style="font-size:11px;padding:5px 11px;display:none" onclick="analizarAnomalias()" disabled>Detectar Anomalías</button>
     <button class="btn-ghost btn-sm" onclick="limpiarTodo()">Limpiar</button>
   </div>
 </div>
@@ -1029,6 +1029,7 @@ function processFile(file){
 
       var hasGeo=rawData.some(function(r){return r.lat!==null&&r.lng!==null;});
       renderMapa();
+      setTimeout(function(){ if(typeof analizarAnomalias==="function") analizarAnomalias(); },100);
       if(hasGeo){
         gid('geoPlaceholder').style.display='none';
         gid('geoRoot').style.display='flex';
@@ -1092,45 +1093,11 @@ function filtrarVehiculos(q){
   renderVehiculos(filtered);
 }
 
-function setVehView(mode){
-  _vehView=mode;
-  gid('vvtList').classList.toggle('active',mode==='list');
-  gid('vvtGrid').classList.toggle('active',mode==='grid');
-  var q=gid('vehSearchInput')?gid('vehSearchInput').value:'';
-  filtrarVehiculos(q);
-}
+function setVehView(mode){ /* grid view removed */ }
 
 function renderVehiculos(entries){
   gid('vehiclesScroll').style.display='flex';
   renderVehList(entries);
-}
-
-// ── Grid view ──
-function renderVehGrid(entries){
-  var grid=gid('vehiclesGrid');
-  grid.innerHTML='';
-  entries.forEach(function(entry){
-    var veh=entry[0], comunas=entry[1];
-    var totalIsos=0;
-    Object.values(comunas).forEach(function(a){totalIsos+=a.length;});
-    var soloUnaCount=Object.values(comunas).filter(function(a){return a.length===1;}).length;
-    var comunaNames=Object.keys(comunas).slice(0,4).join(', ')+(Object.keys(comunas).length>4?' +'+( Object.keys(comunas).length-4):'');
-
-    var card=document.createElement('div');
-    card.className='veh-card';
-    var pillsHtml='<span class="pill pill-blue">'+totalIsos+' ISOs</span><span class="pill pill-dim">'+Object.keys(comunas).length+' comunas</span>';
-    if(soloUnaCount) pillsHtml+='<span class="pill pill-orange">⚠ '+soloUnaCount+' solo 1</span>';
-    card.innerHTML=
-      '<div class="veh-card-header">'+
-        '<span style="font-size:16px">🚛</span>'+
-        '<div class="veh-card-name" title="'+escH(veh)+'">'+escH(veh)+'</div>'+
-        '<div class="veh-card-isos">'+totalIsos+'</div>'+
-      '</div>'+
-      '<div class="veh-card-pills">'+pillsHtml+'</div>'+
-      '<div class="veh-card-comunas" title="'+escH(Object.keys(comunas).join(', '))+'">'+escH(comunaNames)+'</div>';
-    card.addEventListener('click', function(){ openVehModal(veh, comunas); });
-    grid.appendChild(card);
-  });
 }
 
 // ── List view ──
@@ -1999,8 +1966,8 @@ function initLeafletMap(){
       var cd=RM_COMUNAS_DATA[key];
       if(!cd||!cd.p) return;
       L.polygon(cd.p,{
-        color:'rgba(80,130,200,0.5)',weight:1.2,fillColor:'rgba(30,70,150,0.05)',
-        fillOpacity:1,interactive:false,dashArray:'4,3'
+        color:'rgba(100,160,255,0.85)',weight:1.8,fillColor:'rgba(40,80,180,0.06)',
+        fillOpacity:1,interactive:false
       }).addTo(_leafletMap);
       // Centroid label using the real name
       var c=cd.c;
@@ -2009,7 +1976,7 @@ function initLeafletMap(){
         // Shorten some long names for map labels
         lbl=lbl.replace('Estación Central','Est.Central').replace('Pedro Aguirre Cerda','P.A.Cerda').replace('Calera de Tango','Cal.Tango').replace('Padre Hurtado','P.Hurtado');
         L.marker([c[0],c[1]],{
-          icon:L.divIcon({className:'',html:'<div style="font-size:8px;font-weight:600;color:rgba(130,165,220,0.65);white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px #000,0 0 6px #000">'+lbl+'</div>',iconAnchor:[20,6]}),
+          icon:L.divIcon({className:'',html:'<div style="font-size:9px;font-weight:700;color:rgba(180,210,255,0.95);white-space:nowrap;pointer-events:none;letter-spacing:0.3px;text-shadow:0 0 8px rgba(0,0,0,1),0 1px 4px rgba(0,0,0,1)">'+lbl+'</div>',iconAnchor:[20,6]}),
           interactive:false,zIndexOffset:-200
         }).addTo(_leafletMap);
       }
@@ -2404,7 +2371,7 @@ function renderResumen(){
   }
 
   var html = '<table class="rsm-table"><thead><tr>'+
-    '<th>#</th><th>ISO</th><th>Gestión</th><th>Dirección</th><th>Observación</th><th>Estado</th><th>Acciones</th>'+
+    '<th>#</th><th>ISO</th><th>Vehículo</th><th>Dirección</th><th>Observación</th><th>Estado</th><th>Acciones</th>'+
     '</tr></thead><tbody>';
 
   visible.forEach(function(r, i){
@@ -2507,7 +2474,7 @@ function exportarResumenXLSX(){
   if(typeof XLSX === 'undefined'){ copiarResumenClipboard(); return; }
 
   var wb = XLSX.utils.book_new();
-  var wsData = [['ISO','Gestión','Dirección','Observación','Tipo','Estado']];
+  var wsData = [['ISO','Vehículo','Dirección','Observación','Tipo','Estado']];
   rows.forEach(function(r){
     wsData.push([
       r.iso, r.veh, r.dir, r.obs,
@@ -2536,8 +2503,8 @@ function copiarResumenClipboard(){
   var hdS='border:1px solid #000;padding:6px 10px;font-weight:bold;background:#0051BA;color:#FFDA1A;font-family:Arial,sans-serif;font-size:11px;';
   var tdS='border:1px solid #000;padding:5px 10px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
   var rich='<table style="border-collapse:collapse">'+
-    '<tr><th style="'+hdS+'">ISO</th><th style="'+hdS+'">Gestión</th><th style="'+hdS+'">Dirección</th><th style="'+hdS+'">Observación</th><th style="'+hdS+'">Tipo</th><th style="'+hdS+'">Estado</th></tr>';
-  var plain='ISO\tGestión\tDirección\tObservación\tTipo\tEstado\n';
+    '<tr><th style="'+hdS+'">ISO</th><th style="'+hdS+'">Vehículo</th><th style="'+hdS+'">Dirección</th><th style="'+hdS+'">Observación</th><th style="'+hdS+'">Tipo</th><th style="'+hdS+'">Estado</th></tr>';
+  var plain='ISO\tVehículo\tDirección\tObservación\tTipo\tEstado\n';
   rows.forEach(function(r){
     var tipo = r.tipo==='fuera'?'Fuera de ruta':'Anomalía';
     var estado = r.status==='resuelto'?'Resuelto':r.status==='aprobado'?'Aprobado':'Pendiente';
@@ -2663,8 +2630,8 @@ function openRtaModal(veh){
         var cd = RM_COMUNAS_DATA[key];
         if(!cd || !cd.p) return;
         L.polygon(cd.p, {
-          color: 'rgba(255,255,255,0.72)',
-          weight: 1.6,
+          color: 'rgba(140,190,255,0.9)',
+          weight: 2.0,
           fillColor: 'transparent',
           fillOpacity: 0,
           interactive: false,
@@ -2680,7 +2647,7 @@ function openRtaModal(veh){
           L.marker([c[0], c[1]], {
             icon: L.divIcon({
               className: '',
-              html: '<div style="font-size:8px;font-weight:600;color:rgba(255,255,255,0.48);white-space:nowrap;pointer-events:none;text-shadow:0 0 5px rgba(255,255,255,0.7),0 0 10px rgba(255,255,255,0.3),0 1px 2px #000">'+lbl+'</div>',
+              html: '<div style="font-size:9px;font-weight:700;color:rgba(200,225,255,0.95);white-space:nowrap;pointer-events:none;letter-spacing:0.3px;text-shadow:0 0 8px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,1)">'+lbl+'</div>',
               iconAnchor: [20, 6]
             }),
             interactive: false,
